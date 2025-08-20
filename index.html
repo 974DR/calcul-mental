@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
-<script src="fireworks.js"></script>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
@@ -18,8 +16,8 @@
       --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1);
     }
     *{box-sizing:border-box}
-    html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";}
- 
+    html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";}
+
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     header .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#4aa7ff,#9b72ff);display:grid;place-items:center}
@@ -86,8 +84,6 @@
     .stars{ background-image: radial-gradient(2px 2px at 20px 30px,#fff,transparent), radial-gradient(1px 1px at 50px 80px,#fff,transparent), radial-gradient(1.5px 1.5px at 90px 40px,#fff,transparent), radial-gradient(1px 1px at 130px 120px,#fff,transparent); background-size: 200px 200px; }
     .stars2{ background-image: radial-gradient(1.5px 1.5px at 60px 10px,#fff,transparent), radial-gradient(1px 1px at 120px 70px,#fff,transparent), radial-gradient(1.5px 1.5px at 170px 150px,#fff,transparent); background-size: 250px 250px; animation-duration: 90s; opacity:.35 }
     @keyframes drift{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-200px,-200px,0) } }
-
-    /* accessibilité */
     @media (prefers-reduced-motion: reduce){
       .stars,.stars2{ animation:none }
       .intro-logo{ animation:none }
@@ -183,12 +179,8 @@
 
   <!-- ===== JS principal (jeu) ===== -->
   <script>
-    // PWA : enregistrement du Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(()=>{});
-    }
+    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }
 
-    // --------- Sélection éléments
     const tablesGrid = document.getElementById('tablesGrid');
     const allTables = document.getElementById('allTables');
     const minB = document.getElementById('minB');
@@ -221,7 +213,6 @@
     const mistakesUl = document.getElementById('mistakes');
     const againBtn = document.getElementById('againBtn');
 
-    // --------- Construction des cases des tables (2..11)
     for (let t=2; t<=11; t++){
       const label = document.createElement('label');
       label.className = 'chip';
@@ -230,7 +221,6 @@
     }
     const tableChecks = () => Array.from(document.querySelectorAll('.table-check'));
 
-    // --------- Sauvegarde/chargement des réglages
     function saveSettings(){
       const selected = tableChecks().filter(c=>c.checked).map(c=>+c.value);
       const s = {
@@ -258,14 +248,12 @@
     }
     loadSettings();
 
-    // Sync All/Tables
     allTables.addEventListener('change', ()=>{ const on=allTables.checked; tableChecks().forEach(c=>c.checked=on); saveSettings(); });
     tablesGrid.addEventListener('change', ()=>{ allTables.checked = tableChecks().every(c=>c.checked); saveSettings(); });
     [minB,maxB,numQ].forEach(i=>i.addEventListener('change', saveSettings));
     modeRadios.forEach(r=>r.addEventListener('change', saveSettings));
     instantCb.addEventListener('change', saveSettings);
 
-    // --------- Logique de session
     let session = null;
     function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
     function fmt(ms){ const s=Math.floor(ms/1000), m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
@@ -278,13 +266,9 @@
       const mode = Array.from(modeRadios).find(r=>r.checked)?.value || 'train';
       const total = mode==='train' ? Math.max(5, Math.min(100, +numQ.value||20)) : Infinity;
 
-      session = {
-        mode, selectedTables, bMin, bMax, total,
-        n:0, good:0, bad:0, streak:0, start: performance.now(), elapsed:0, lastTick: performance.now(),
-        finished:false, current:null, mistakes:{}, history:[]
-      };
+      session = { mode, selectedTables, bMin, bMax, total, n:0, good:0, bad:0, streak:0,
+        start: performance.now(), elapsed:0, lastTick: performance.now(), finished:false, current:null, mistakes:{}, history:[] };
 
-      // UI
       feedback.textContent = ''; feedback.className = 'feedback';
       goodEl.textContent = '0'; badEl.textContent = '0'; countEl.textContent = '0'; streakEl.textContent = '0'; timerEl.textContent='00:00';
       play.style.display='block'; resultEl.classList.remove('active');
@@ -349,10 +333,7 @@
       const pct = asked ? Math.round(100*session.good/asked) : 0;
       scorePct.textContent = pct;
 
-      // 🎆 Feu d’artifice si 100%
-      if (pct === 100) {
-        showFireworks(5000);
-      }
+      if (pct === 100) { showFireworks(5000); }
 
       totalTime.textContent = fmt(session.elapsed);
       tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
@@ -368,12 +349,10 @@
       }
     }
 
-    // Events
     startBtn.addEventListener('click', newSession);
     resetBtn.addEventListener('click', ()=>{
       localStorage.removeItem('cm_history');
       localStorage.removeItem('cm_settings');
-      // valeurs par défaut
       allTables.checked = true; tableChecks().forEach(c=>c.checked=true);
       minB.value = 0; maxB.value = 11; numQ.value = 20; instantCb.checked = true;
       alert('Paramètres réinitialisés.');
@@ -384,40 +363,28 @@
     againBtn.addEventListener('click', ()=>{ resultEl.classList.remove('active'); newSession(); });
   </script>
 
-  <!-- Confetti + Fireworks (en bas) -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <!-- Confetti + Fireworks -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
-  <!-- Intro (UN SEUL script pour l’intro) -->
+  <!-- Intro -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       const intro = document.getElementById('intro');
       if (!intro) return;
-
       const introStartBtn = document.getElementById('introBtn');
       const introSkipBtn  = document.getElementById('skipIntro');
       const SEEN_KEY = 'cm_intro_seen_v1';
 
-      // Si déjà vue, on masque l’intro
-      if (localStorage.getItem(SEEN_KEY)) {
-        intro.classList.add('hide');
-        return;
-      }
+      if (localStorage.getItem(SEEN_KEY)) { intro.classList.add('hide'); return; }
 
       function closeIntro(playSound){
-        try{
-          if (playSound) {
-            const audio = new Audio('intro-sound.mp3');
-            audio.play().catch(()=>{});
-          }
-        }catch(e){}
+        try{ if (playSound) new Audio('intro-sound.mp3').play().catch(()=>{}); }catch(e){}
         intro.classList.add('hide');
         localStorage.setItem(SEEN_KEY, '1');
-        // focus sur Démarrer
         const start = document.getElementById('startBtn');
         if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
       }
-
       introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
       introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
     });
