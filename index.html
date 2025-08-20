@@ -11,6 +11,34 @@
   <meta name="theme-color" content="#0e0f12">
 
   <style>
+    /* Ligne "Vive les maths" — pop + battement */
+.intro-heart{
+  font-size: clamp(18px, 4vw, 26px);
+  color:#ff4d4d;
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-shadow: 0 0 12px rgba(255,77,77,.35);
+  /* arrive en fondu/zoom puis petit battement 6 fois (~10s) */
+  animation:
+    heartPop .9s cubic-bezier(.2,.9,.2,1) .15s both,
+    heartBeat 1.6s ease-in-out .9s 6 alternate;
+}
+
+@keyframes heartPop{
+  from{ transform: scale(.85); opacity:0 }
+  to  { transform: scale(1);   opacity:1 }
+}
+@keyframes heartBeat{
+  0%  { transform: scale(1) }
+  30% { transform: scale(1.08) }
+  60% { transform: scale(1) }
+  100%{ transform: scale(1.06) }
+}
+
+/* Accessibilité : pas d’animation si l’utilisateur la réduit */
+@media (prefers-reduced-motion: reduce){
+  .intro-heart{ animation: none }
+}
     :root{
       --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd;
       --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1);
