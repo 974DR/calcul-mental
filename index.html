@@ -72,6 +72,41 @@
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
     .muted{color:var(--muted)}
+    /* ===== Intro plein-écran =================================================== */
+#intro{
+  position:fixed; inset:0; z-index:9999; background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
+  display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;
+}
+#intro.hide{ opacity:0; pointer-events:none; }
+
+.intro-center{ text-align:center; padding:24px; }
+.intro-logo{
+  font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
+  background:linear-gradient(135deg,#8dd0ff,#9b72ff);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
+  animation: popIn .9s cubic-bezier(.2,.9,.2,1) both;
+}
+.intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
+.intro-btn{
+  appearance:none; border:none; border-radius:14px; padding:12px 18px; font-weight:800; cursor:pointer;
+  background:linear-gradient(135deg,#4aa7ff,#8dd0ff); color:#03111f; margin-right:8px;
+}
+.intro-skip{ background:transparent; border:1px solid rgba(255,255,255,.15); color:#d3dbe5; border-radius:14px; padding:10px 14px; }
+
+@keyframes popIn{ from{ transform:scale(.8); opacity:0 } to{ transform:scale(1); opacity:1 } }
+
+/* étoiles */
+.stars,.stars2{ position:absolute; inset:-200% -200%; background-repeat:repeat; animation: drift 60s linear infinite; opacity:.6 }
+.stars{ background-image: radial-gradient(2px 2px at 20px 30px,#fff,transparent), radial-gradient(1px 1px at 50px 80px,#fff,transparent), radial-gradient(1.5px 1.5px at 90px 40px,#fff,transparent), radial-gradient(1px 1px at 130px 120px,#fff,transparent); background-size: 200px 200px; }
+.stars2{ background-image: radial-gradient(1.5px 1.5px at 60px 10px,#fff,transparent), radial-gradient(1px 1px at 120px 70px,#fff,transparent), radial-gradient(1.5px 1.5px at 170px 150px,#fff,transparent); background-size: 250px 250px; animation-duration: 90s; opacity:.35 }
+@keyframes drift{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-200px,-200px,0) } }
+
+/* accessibilité */
+@media (prefers-reduced-motion: reduce){
+  .stars,.stars2{ animation:none }
+  .intro-logo{ animation:none }
+}
   </style>
 </head>
 <body>
