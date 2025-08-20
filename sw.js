@@ -5,10 +5,11 @@
     const startBtn = document.getElementById('introBtn');
     const skipBtn  = document.getElementById('skipIntro');
 
-    // Ne montrer l'intro qu'une fois par appareil (jusqu'au prochain vidage du cache)
-    const SEEN_KEY = 'cm_intro_seen_v1';
-    const seen = localStorage.getItem(SEEN_KEY);
-    if(seen){ intro.classList.add('hide'); } // déjà vu → pas d'intro
+const SEEN_KEY = 'cm_intro_seen_v1';
+const seen = localStorage.getItem(SEEN_KEY);
+if(seen){ intro.classList.add('hide'); }
+...
+localStorage.setItem(SEEN_KEY, '1');
 
     function closeIntro(playSound){
       try{
