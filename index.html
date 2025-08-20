@@ -413,5 +413,15 @@ document.addEventListener('DOMContentLoaded', function () {
   introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
 });
 </script>
+  <script>
+document.getElementById('introBtn')?.addEventListener('click', () => {
+  document.getElementById('intro')?.classList.add('hide');
+  localStorage.setItem('cm_intro_seen_v1','1');
+});
+document.getElementById('skipIntro')?.addEventListener('click', () => {
+  document.getElementById('intro')?.classList.add('hide');
+  localStorage.setItem('cm_intro_seen_v1','1');
+});
+</script>
 </body>
 </html>
