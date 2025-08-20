@@ -1,34 +1,26 @@
-// sw.js — GitHub Pages friendly
-const CACHE = 'cm-v7';
+// sw.js
+const CACHE = 'cm-v7'; // ← nouvelle version
 
-// Détecte le sous-dossier (ex: "/calcul-mental/")
-const baseURL = (() => {
-  const p = self.location.pathname;            // "/calcul-mental/sw.js"
-  return p.endsWith('sw.js') ? p.replace(/sw\.js$/, '') : '/';
-})();
+// Construire des URLs relatives au scope du SW (donc /calcul-mental/)
+const toURL = (p) => new URL(p, self.location).toString();
 
-// Liste des fichiers à precacher (chemins relatifs au dossier du site)
 const ASSETS = [
-  '',                 // => index.html
+  '',                 // équivaut à index.html
   'index.html',
   'fireworks.js',
   'icon-192.png',
   'icon-512.png',
   'manifest.webmanifest',
-];
+  // ajoute ici d'autres fichiers si besoin (css/js) **sans** slash initial
+].map(toURL);
 
-// Helper: fabrique une Request avec le bon chemin
-const url = (path) => new URL(baseURL + path, self.location.origin).toString();
-
-// ----- Install: precache
+// --- Install & precache
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS.map(url)))
-  );
+  event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)));
   self.skipWaiting();
 });
 
-// ----- Activate: nettoyage anciens caches
+// --- Activate & clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -38,20 +30,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// ----- Fetch
+// --- Fetch strategy
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Navigations: réseau d'abord, fallback sur index.html en offline
+  // Pour les navigations (ouvrir/rafraîchir une page) → fallback sur index.html du scope
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match(url('index.html')))
+      fetch(req).catch(() => caches.match(toURL('index.html')))
     );
     return;
   }
 
-  // Autres requêtes: cache d'abord, sinon réseau
+  // Pour le reste : cache d'abord, sinon réseau
   event.respondWith(
     caches.match(req).then((res) => res || fetch(req))
   );
-});
+}); 
