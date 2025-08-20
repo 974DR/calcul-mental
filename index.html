@@ -368,27 +368,33 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
-  <!-- Intro -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const intro = document.getElementById('intro');
-      if (!intro) return;
-      const introStartBtn = document.getElementById('introBtn');
-      const introSkipBtn  = document.getElementById('skipIntro');
-      const SEEN_KEY = 'cm_intro_seen_v1';
+m
+<!-- Intro -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const intro = document.getElementById('intro');
+    if (!intro) return;
 
-      if (localStorage.getItem(SEEN_KEY)) { intro.classList.add('hide'); return; }
+    const SEEN_KEY = 'cm_intro_seen_v1';
 
-      function closeIntro(playSound){
-        try{ if (playSound) new Audio('intro-sound.mp3').play().catch(()=>{}); }catch(e){}
-        intro.classList.add('hide');
-        localStorage.setItem(SEEN_KEY, '1');
-        const start = document.getElementById('startBtn');
-        if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-      }
-      introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
-      introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
-    });
-  </script>
+    // Fonction pour fermer l'intro
+    function closeIntro(playSound){
+      try{ if (playSound) new Audio('intro-sound.mp3').play().catch(()=>{}); }catch(e){}
+      intro.classList.add('hide');
+      localStorage.setItem(SEEN_KEY, '1');
+      const start = document.getElementById('startBtn');
+      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+    }
+
+    // Si déjà vu → on passe direct
+    if (localStorage.getItem(SEEN_KEY)) { 
+      intro.classList.add('hide'); 
+      return; 
+    }
+
+    // ❌ On supprime les boutons manuels et on auto-lance après 2 sec
+    setTimeout(()=>closeIntro(true), 2000);
+  });
+</script>
 </body>
 </html>
