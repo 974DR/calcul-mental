@@ -1,6 +1,15 @@
-// sw.js
-const CACHE = 'cm-v8'; // change ce nom à chaque mise à jour
+// sw.js — GitHub Pages friendly
+const CACHE = 'cm-v7';
+
+// Détecte le sous-dossier (ex: "/calcul-mental/")
+const baseURL = (() => {
+  const p = self.location.pathname;            // "/calcul-mental/sw.js"
+  return p.endsWith('sw.js') ? p.replace(/sw\.js$/, '') : '/';
+})();
+
+// Liste des fichiers à precacher (chemins relatifs au dossier du site)
 const ASSETS = [
+  '',                 // => index.html
   'index.html',
   'fireworks.js',
   'icon-192.png',
@@ -8,13 +17,18 @@ const ASSETS = [
   'manifest.webmanifest',
 ];
 
-// Install + precache
+// Helper: fabrique une Request avec le bon chemin
+const url = (path) => new URL(baseURL + path, self.location.origin).toString();
+
+// ----- Install: precache
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE).then((c) => c.addAll(ASSETS.map(url)))
+  );
   self.skipWaiting();
 });
 
-// Activate + nettoyage anciens caches
+// ----- Activate: nettoyage anciens caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -24,18 +38,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch
+// ----- Fetch
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Navigation : fallback sur index.html du même répertoire
+  // Navigations: réseau d'abord, fallback sur index.html en offline
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('index.html'))
+      fetch(req).catch(() => caches.match(url('index.html')))
     );
     return;
   }
 
-  // Le reste : cache d’abord puis réseau
-  event.respondWith(caches.match(req).then((res) => res || fetch(req)));
+  // Autres requêtes: cache d'abord, sinon réseau
+  event.respondWith(
+    caches.match(req).then((res) => res || fetch(req))
+  );
 });
