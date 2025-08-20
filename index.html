@@ -179,8 +179,9 @@
 
   <!-- ===== JS principal (jeu) ===== -->
   <script>
-    if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js').catch(()=>{}); }
-
+    if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw-v8.js?v=1').catch(()=>{});
+}
     const tablesGrid = document.getElementById('tablesGrid');
     const allTables = document.getElementById('allTables');
     const minB = document.getElementById('minB');
