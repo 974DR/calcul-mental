@@ -135,9 +135,197 @@
     </section>
   </div>
 
-  <!-- JS identique à la version précédente -->
   <script>
-    /* le gros script complet que je t’ai donné précédemment reste inchangé ici */
+    // PWA : enregistrement du Service Worker
+    if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+
+    // --------- Sélection éléments
+    const tablesGrid = document.getElementById('tablesGrid');
+    const allTables = document.getElementById('allTables');
+    const minB = document.getElementById('minB');
+    const maxB = document.getElementById('maxB');
+    const numQ = document.getElementById('numQ');
+    const modeRadios = document.querySelectorAll('input[name="mode"]');
+    const instantCb = document.getElementById('instant');
+
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const play = document.getElementById('play');
+    const resultEl = document.getElementById('result');
+
+    const qa = document.getElementById('qa');
+    const qb = document.getElementById('qb');
+    const answer = document.getElementById('answer');
+    const okBtn = document.getElementById('okBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const feedback = document.getElementById('feedback');
+
+    const countEl = document.getElementById('count');
+    const goodEl = document.getElementById('good');
+    const badEl = document.getElementById('bad');
+    const timerEl = document.getElementById('timer');
+    const streakEl = document.getElementById('streak');
+
+    const scorePct = document.getElementById('scorePct');
+    const totalTime = document.getElementById('totalTime');
+    const tPerQ = document.getElementById('tPerQ');
+    const mistakesUl = document.getElementById('mistakes');
+    const againBtn = document.getElementById('againBtn');
+
+    // --------- Construction des cases des tables (2..11)
+    for(let t=2;t<=11;t++){
+      const label = document.createElement('label');
+      label.className = 'chip';
+      label.innerHTML = '<input type="checkbox" class="table-check" value="'+t+'"> ×'+t;
+      tablesGrid.appendChild(label);
+    }
+    const tableChecks = () => Array.from(document.querySelectorAll('.table-check'));
+
+    // --------- Sauvegarde/chargement des réglages
+    function saveSettings(){
+      const selected = tableChecks().filter(c=>c.checked).map(c=>+c.value);
+      const s = {
+        mode: Array.from(modeRadios).find(r=>r.checked)?.value || 'train',
+        allTables: allTables.checked,
+        selected, minB:+minB.value, maxB:+maxB.value, numQ:+numQ.value,
+        instant: instantCb.checked
+      };
+      localStorage.setItem('cm_settings', JSON.stringify(s));
+    }
+    function loadSettings(){
+      const raw = localStorage.getItem('cm_settings');
+      if(!raw){
+        allTables.checked = true; tableChecks().forEach(c=>c.checked=true);
+        return;
+      }
+      try{
+        const s = JSON.parse(raw);
+        (document.querySelector('input[name="mode"][value="'+(s.mode||'train')+'"]')||{}).checked = true;
+        allTables.checked = !!s.allTables;
+        tableChecks().forEach(c=>c.checked = s.allTables || (s.selected||[]).includes(+c.value));
+        minB.value = s.minB ?? 0; maxB.value = s.maxB ?? 11; numQ.value = s.numQ ?? 20;
+        instantCb.checked = s.instant ?? true;
+      }catch(e){ allTables.checked = true; tableChecks().forEach(c=>c.checked=true); }
+    }
+    loadSettings();
+
+    // Sync All/Tables
+    allTables.addEventListener('change', ()=>{ const on=allTables.checked; tableChecks().forEach(c=>c.checked=on); saveSettings(); });
+    tablesGrid.addEventListener('change', ()=>{ allTables.checked = tableChecks().every(c=>c.checked); saveSettings(); });
+    [minB,maxB,numQ].forEach(i=>i.addEventListener('change', saveSettings));
+    modeRadios.forEach(r=>r.addEventListener('change', saveSettings));
+    instantCb.addEventListener('change', saveSettings);
+
+    // --------- Logique de session
+    let session = null;
+    function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+    function fmt(ms){ const s=Math.floor(ms/1000), m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+
+    function newSession(){
+      const selectedTables = tableChecks().filter(c=>c.checked).map(c=>+c.value);
+      if(selectedTables.length===0){ alert('Sélectionnez au moins une table.'); return; }
+      const bMin = Math.max(0, Math.min(11, +minB.value||0));
+      const bMax = Math.max(bMin, Math.min(11, +maxB.value||11));
+      const mode = Array.from(modeRadios).find(r=>r.checked)?.value || 'train';
+      const total = mode==='train' ? Math.max(5, Math.min(100, +numQ.value||20)) : Infinity;
+
+      session = {
+        mode, selectedTables, bMin, bMax, total,
+        n:0, good:0, bad:0, streak:0, start: performance.now(), elapsed:0, lastTick: performance.now(),
+        finished:false, current:null, mistakes:{}, history:[]
+      };
+
+      // UI
+      feedback.textContent = ''; feedback.className = 'feedback';
+      goodEl.textContent = '0'; badEl.textContent = '0'; countEl.textContent = '0'; streakEl.textContent = '0'; timerEl.textContent='00:00';
+      play.style.display='block'; resultEl.classList.remove('active');
+      okBtn.disabled=false; skipBtn.disabled=false;
+
+      nextQuestion(); answer.value=''; answer.focus({preventScroll:true});
+      requestAnimationFrame(tick);
+    }
+
+    function nextQuestion(){
+      if(!session || session.finished) return;
+      if(session.mode==='train' && session.n>=session.total) return finish();
+      if(session.mode==='sprint' && session.elapsed>=60000) return finish();
+
+      session.n++; countEl.textContent = String(session.n);
+      const a = session.selectedTables[randInt(0, session.selectedTables.length-1)];
+      const b = randInt(session.bMin, session.bMax);
+      session.current = {a,b,sol:a*b};
+
+      qa.textContent = a; qb.textContent = b;
+      answer.value=''; answer.focus({preventScroll:true});
+    }
+
+    function tick(){
+      if(!session || session.finished) return;
+      const now = performance.now();
+      session.elapsed += now - session.lastTick;
+      session.lastTick = now;
+      timerEl.textContent = fmt(session.elapsed);
+      if(session.mode==='sprint' && session.elapsed>=60000){ finish(); return; }
+      requestAnimationFrame(tick);
+    }
+
+    function submit(skipped=false){
+      if(!session || session.finished) return;
+      const val = skipped ? null : Number(answer.value);
+      const ok = !skipped && (val === session.current.sol);
+
+      if(ok){
+        session.good++; goodEl.textContent = String(session.good);
+        session.streak++; streakEl.textContent = String(session.streak);
+        feedback.textContent = '✅ Bravo !'; feedback.className = 'feedback ok';
+      }else{
+        session.bad++; badEl.textContent = String(session.bad);
+        session.streak = 0; streakEl.textContent = '0';
+        feedback.textContent = '❌ Mauvaise réponse. La bonne est '+session.current.sol; feedback.className = 'feedback bad';
+        const key = session.current.a+'×'+session.current.b;
+        session.mistakes[key] = (session.mistakes[key]||0) + 1;
+      }
+
+      session.history.push({a:session.current.a,b:session.current.b,ans:val,ok,ts:Date.now()});
+      if(instantCb.checked || ok || skipped){ nextQuestion(); }
+    }
+
+    function finish(){
+      if(!session || session.finished) return;
+      session.finished = true;
+      okBtn.disabled = true; skipBtn.disabled = true;
+      play.style.display='none'; resultEl.classList.add('active');
+
+      const asked = session.history.length;
+      const pct = asked ? Math.round(100*session.good/asked) : 0;
+      scorePct.textContent = pct;
+      totalTime.textContent = fmt(session.elapsed);
+      tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
+
+      mistakesUl.innerHTML = '';
+      const items = Object.entries(session.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      if(items.length===0){
+        const li = document.createElement('li'); li.textContent = 'Aucune erreur — super !'; mistakesUl.appendChild(li);
+      }else{
+        items.forEach(([k,c]) => {
+          const li = document.createElement('li'); li.textContent = `${k}  ×${c}`; mistakesUl.appendChild(li);
+        });
+      }
+    }
+
+    // Events
+    startBtn.addEventListener('click', newSession);
+    resetBtn.addEventListener('click', ()=>{
+      localStorage.removeItem('cm_history');
+      localStorage.removeItem('cm_settings');
+      // valeurs par défaut
+      allTables.checked = true; tableChecks().forEach(c=>c.checked=true);
+      minB.value = 0; maxB.value = 11; numQ.value = 20; instantCb.checked = true;
+      alert('Paramètres réinitialisés.');
+    });
+    okBtn.addEventListener('click', ()=>submit(false));
+    skipBtn.addEventListener('click', ()=>submit(true));
+    answer.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); submit(false);} });
   </script>
 </body>
-</html>p
+</html>
