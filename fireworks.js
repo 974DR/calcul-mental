@@ -1,37 +1,70 @@
 // fireworks.js
 function showFireworks(duration = 5000) {
-  // créer un canvas en plein écran
-  let canvas = document.getElementById('fireworks-overlay');
+  let canvas = document.getElementById("fireworks-overlay");
   if (!canvas) {
-    canvas = document.createElement('canvas');
-    canvas.id = 'fireworks-overlay';
-    canvas.style.position = 'fixed';
-    canvas.style.inset = '0';
-    canvas.style.pointerEvents = 'none';
-    canvas.style.zIndex = '9999';
+    canvas = document.createElement("canvas");
+    canvas.id = "fireworks-overlay";
+    canvas.style.position = "fixed";
+    canvas.style.inset = "0";
+    canvas.style.zIndex = "9999";
+    canvas.style.pointerEvents = "none";
     document.body.appendChild(canvas);
   }
+  const ctx = canvas.getContext("2d");
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 
-  // créer une instance de confetti
-  const conf = confetti.create(canvas, { resize: true, useWorker: true });
-  const end = Date.now() + duration;
-
-  (function frame() {
-    // 3 explosions aléatoires par frame
-    for (let i = 0; i < 3; i++) {
-      conf({
-        particleCount: 80,
-        spread: 70,
-        startVelocity: 60,
-        gravity: 1.0,
-        ticks: 120,
-        origin: { x: Math.random(), y: Math.random() * 0.4 + 0.1 }
-      });
+  class Particle {
+    constructor(x, y, color, angle, speed) {
+      this.x = x;
+      this.y = y;
+      this.color = color;
+      this.speedX = Math.cos(angle) * speed;
+      this.speedY = Math.sin(angle) * speed;
+      this.life = 100;
     }
+    update() {
+      this.x += this.speedX;
+      this.y += this.speedY;
+      this.speedY += 0.05; // gravité
+      this.life--;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+    }
+  }
+
+  let particles = [];
+  function explode() {
+    const colors = ["#ff4444", "#44ff44", "#4488ff", "#ffff44", "#ff44ff"];
+    const x = innerWidth / 2;
+    const y = innerHeight / 2;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    for (let i = 0; i < 80; i++) {
+      const angle = Math.random() * 2 * Math.PI;
+      const speed = Math.random() * 5 + 2;
+      particles.push(new Particle(x, y, color, angle, speed));
+    }
+  }
+
+  let end = Date.now() + duration;
+  function loop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, i) => {
+      p.update();
+      p.draw();
+      if (p.life <= 0) particles.splice(i, 1);
+    });
     if (Date.now() < end) {
-      requestAnimationFrame(frame);
+      if (Math.random() < 0.05) explode();
+      requestAnimationFrame(loop);
     } else {
-      setTimeout(() => { canvas.remove(); }, 300);
+      canvas.remove();
     }
-  })();
+  }
+  explode();
+  loop();
 }
