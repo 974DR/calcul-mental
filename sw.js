@@ -55,3 +55,39 @@ self.addEventListener('fetch', e => {
     caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html')))
   );
 });
+// Affiche un feu d’artifice plein écran pendant `duration` ms
+function showFireworks(duration = 5000) {
+  // canvas plein écran qui n’intercepte pas les clics
+  let canvas = document.getElementById('fireworks-overlay');
+  if (!canvas) {
+    canvas = document.createElement('canvas');
+    canvas.id = 'fireworks-overlay';
+    canvas.style.position = 'fixed';
+    canvas.style.inset = '0';
+    canvas.style.pointerEvents = 'none';
+    canvas.style.zIndex = '9999';
+    document.body.appendChild(canvas);
+  }
+
+  const conf = confetti.create(canvas, { resize: true, useWorker: true });
+  const end = Date.now() + duration;
+
+  (function frame() {
+    // Plusieurs « explosions » à des positions aléatoires
+    for (let i = 0; i < 3; i++) {
+      conf({
+        particleCount: 80,
+        spread: 70,
+        startVelocity: 60,
+        gravity: 1.0,
+        ticks: 120,
+        origin: { x: Math.random(), y: Math.random() * 0.4 + 0.1 } // en haut/milieu de l’écran
+      });
+    }
+    if (Date.now() < end) {
+      requestAnimationFrame(frame);
+    } else {
+      setTimeout(() => { canvas.remove(); }, 300);
+    }
+  })();
+}
