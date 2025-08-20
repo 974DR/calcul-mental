@@ -1,5 +1,5 @@
 // sw.js (pas de balises <script> ici)
-const CACHE = 'cm-v2'; // change le nom quand tu modifies la liste
+const CACHE = 'cm-v3';
 const ASSETS = [
   '/',                 // si ton SW est à la racine du site
   '/index.html',
