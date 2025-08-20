@@ -4,43 +4,301 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calcul mental — Tables de multiplication</title>
+
+  <!-- Icône & PWA -->
   <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f12">
+
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; padding: 30px; }
-    h1 { color: #2c3e50; }
-    button { font-size: 18px; padding: 10px 20px; margin-top: 15px; }
-    #question { font-size: 22px; margin: 20px; }
-    #result { margin-top: 10px; font-weight: bold; }
+    :root{
+      --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd;
+      --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 10% -10%, #1a232f 0%, var(--bg) 55%) fixed;
+    }
+    .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    header .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#4aa7ff,#9b72ff);display:grid;place-items:center}
+    header .logo span{font-weight:800;color:white;font-size:20px}
+    h1{margin:0;font-size:clamp(22px,4vw,34px)}
+    .sub{color:var(--muted);font-size:14px}
+
+    .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+    @media (max-width:850px){.grid{grid-template-columns:1fr}}
+    .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    label{font-size:14px;color:var(--muted)}
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
+    .tables{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:6px}
+    @media (max-width:520px){.tables{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);width:90px}
+    input[type="checkbox"],input[type="radio"]{transform:scale(1.1)}
+    button{
+      appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f
+    }
+    button.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+    button.ghost{background:transparent;color:var(--muted)}
+    button:disabled{opacity:.6;cursor:not-allowed}
+    .question{font-size:clamp(28px,6vw,56px);font-weight:800;text-align:center;margin:10px 0 6px}
+    .question .op{color:var(--accent)}
+    .input-line{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+    .input-line input{font-size:22px;text-align:center;width:180px}
+    .status{display:flex;gap:10px;flex-wrap:wrap;justify-content:space-between;border-top:1px dashed var(--border);padding-top:10px;margin-top:10px;color:var(--muted)}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#0f1218}
+    .pill.ok{border-color:rgba(52,211,153,.4);color:#d1fae5}
+    .pill.bad{border-color:rgba(248,113,113,.4);color:#fee2e2}
+    .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
+    .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
+    .result{display:none} .result.active{display:block}
+    .muted{color:var(--muted)}
   </style>
 </head>
 <body>
-  <h1>Calcul mental — Tables de multiplication</h1>
-  <p id="question">Clique sur "Nouvelle question" pour commencer</p>
-  <input type="number" id="answer" placeholder="Ta réponse">
-  <button onclick="checkAnswer()">Valider</button>
-  <button onclick="newQuestion()">Nouvelle question</button>
-  <p id="result"></p>
+  <div class="wrap">
+    <header>
+      <div class="logo"><span>×</span></div>
+      <div>
+        <h1>Calcul mental — Tables de multiplication</h1>
+        <div class="sub">Choisis les tables, le mode et entraîne-toi ! (PWA, hors-ligne)</div>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="grid">
+        <!-- Réglages -->
+        <div>
+          <div class="row" style="margin-bottom:8px">
+            <span class="chip"><input type="radio" name="mode" value="train" checked> Entraînement</span>
+            <span class="chip"><input type="radio" name="mode" value="sprint"> Sprint 60 s</span>
+            <span class="chip"><label>Nb questions <input id="numQ" type="number" min="5" max="100" value="20"></label></span>
+          </div>
+
+          <div class="row">
+            <span class="chip"><input type="checkbox" id="allTables"> <strong>Toutes (2–11)</strong></span>
+          </div>
+          <div id="tablesGrid" class="tables" style="margin-bottom:8px"></div>
+
+          <div class="row">
+            <span class="chip"><label>Deuxième facteur de
+              <input id="minB" type="number" min="0" max="11" value="0"> à
+              <input id="maxB" type="number" min="0" max="11" value="11"></label></span>
+            <span class="chip"><input type="checkbox" id="instant" checked> Correction immédiate</span>
+          </div>
+
+          <div class="row" style="margin-top:10px">
+            <button id="startBtn">Démarrer</button>
+            <button class="secondary" id="resetBtn">Réinitialiser</button>
+          </div>
+        </div>
+
+        <!-- Jeu -->
+        <div>
+          <div id="play" class="card" style="display:none">
+            <div class="question"><span id="qa"></span> <span class="op">×</span> <span id="qb"></span> <span class="op">=</span> ?</div>
+            <div class="input-line">
+              <input id="answer" type="number" inputmode="numeric" placeholder="Ta réponse">
+              <button id="okBtn">Valider</button>
+              <button class="secondary" id="skipBtn">Je ne sais pas</button>
+            </div>
+            <div id="feedback" class="feedback"></div>
+            <div class="status">
+              <div class="pill">Q <span id="count">0</span></div>
+              <div class="pill ok">✔︎ <span id="good">0</span></div>
+              <div class="pill bad">✖︎ <span id="bad">0</span></div>
+              <div class="pill">⏱️ <span id="timer">00:00</span></div>
+              <div class="pill">🔥 Série : <span id="streak">0</span></div>
+            </div>
+          </div>
+
+          <div id="result" class="result card">
+            <h3>Résumé</h3>
+            <p>Score : <strong><span id="scorePct">0</span>%</strong> — Temps : <strong id="totalTime">00:00</strong> — Moyenne : <strong id="tPerQ">—</strong></p>
+            <p class="muted" id="mistakesTitle" style="margin:6px 0 0">Erreurs à revoir :</p>
+            <ul id="mistakes" style="margin:6px 0 0; padding-left:18px"></ul>
+            <div class="row"><button id="againBtn">Refaire une session</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
 
   <script>
-    let a, b;
+    // --------- UI Elements
+    const tablesGrid = document.getElementById('tablesGrid');
+    const allTables = document.getElementById('allTables');
+    const minB = document.getElementById('minB');
+    const maxB = document.getElementById('maxB');
+    const numQ = document.getElementById('numQ');
+    const modeRadios = document.querySelectorAll('input[name="mode"]');
+    const instantCb = document.getElementById('instant');
 
-    function newQuestion() {
-      a = Math.floor(Math.random() * 11); // 0 à 10
-      b = Math.floor(Math.random() * 11);
-      document.getElementById("question").innerText = `Combien fait ${a} × ${b} ?`;
-      document.getElementById("answer").value = "";
-      document.getElementById("result").innerText = "";
+    const startBtn = document.getElementById('startBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const play = document.getElementById('play');
+    const resultEl = document.getElementById('result');
+
+    const qa = document.getElementById('qa');
+    const qb = document.getElementById('qb');
+    const answer = document.getElementById('answer');
+    const okBtn = document.getElementById('okBtn');
+    const skipBtn = document.getElementById('skipBtn');
+    const feedback = document.getElementById('feedback');
+
+    const countEl = document.getElementById('count');
+    const goodEl = document.getElementById('good');
+    const badEl = document.getElementById('bad');
+    const timerEl = document.getElementById('timer');
+    const streakEl = document.getElementById('streak');
+
+    const scorePct = document.getElementById('scorePct');
+    const totalTime = document.getElementById('totalTime');
+    const tPerQ = document.getElementById('tPerQ');
+    const mistakesUl = document.getElementById('mistakes');
+    const againBtn = document.getElementById('againBtn');
+
+    // Build table checkboxes (2..11)
+    for(let t=2;t<=11;t++){
+      const label = document.createElement('label');
+      label.className = 'chip';
+      label.innerHTML = '<input type="checkbox" class="table-check" value="'+t+'"> ×'+t;
+      tablesGrid.appendChild(label);
+    }
+    const tableChecks = () => Array.from(document.querySelectorAll('.table-check'));
+
+    // Smart defaults
+    function setDefaults(){
+      allTables.checked = true;
+      tableChecks().forEach(c => c.checked = true);
+    }
+    setDefaults();
+
+    // All / per-table sync
+    allTables.addEventListener('change', () => {
+      const on = allTables.checked;
+      tableChecks().forEach(c => c.checked = on);
+    });
+    tablesGrid.addEventListener('change', () => {
+      allTables.checked = tableChecks().every(c => c.checked);
+    });
+
+    // --------- Session
+    let session = null;
+    function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+    function fmt(ms){ const s=Math.floor(ms/1000), m=Math.floor(s/60), r=s%60; return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0'); }
+
+    function newSession(){
+      const selectedTables = tableChecks().filter(c=>c.checked).map(c=>+c.value);
+      if(selectedTables.length===0){ alert('Sélectionnez au moins une table.'); return; }
+      const bMin = Math.max(0, Math.min(11, +minB.value||0));
+      const bMax = Math.max(bMin, Math.min(11, +maxB.value||11));
+      const mode = Array.from(modeRadios).find(r=>r.checked)?.value || 'train';
+      const total = mode==='train' ? Math.max(5, Math.min(100, +numQ.value||20)) : Infinity;
+
+      session = {
+        mode, selectedTables, bMin, bMax, total,
+        n:0, good:0, bad:0, streak:0, start: performance.now(), elapsed:0, lastTick: performance.now(),
+        finished:false, current:null, mistakes:{}, history:[]
+      };
+
+      // UI init
+      feedback.textContent = ''; feedback.className = 'feedback';
+      goodEl.textContent = '0'; badEl.textContent = '0'; countEl.textContent = '0'; streakEl.textContent = '0'; timerEl.textContent='00:00';
+      play.style.display='block'; resultEl.classList.remove('active');
+      okBtn.disabled=false; skipBtn.disabled=false;
+
+      // Start loop
+      nextQuestion(); answer.value=''; answer.focus({preventScroll:true});
+      requestAnimationFrame(tick);
     }
 
-    function checkAnswer() {
-      const userAnswer = parseInt(document.getElementById("answer").value);
-      if (userAnswer === a * b) {
-        document.getElementById("result").innerText = "✅ Bravo, c'est correct !";
-      } else {
-        document.getElementById("result").innerText = `❌ Mauvaise réponse. La bonne réponse est ${a * b}.`;
+    function nextQuestion(){
+      if(!session || session.finished) return;
+      if(session.mode==='train' && session.n>=session.total) return finish();
+      if(session.mode==='sprint' && session.elapsed>=60000) return finish();
+
+      session.n++; countEl.textContent = String(session.n);
+      const a = session.selectedTables[randInt(0, session.selectedTables.length-1)];
+      const b = randInt(session.bMin, session.bMax);
+      session.current = {a,b,sol:a*b};
+
+      qa.textContent = a; qb.textContent = b;
+      answer.value=''; answer.focus({preventScroll:true});
+    }
+
+    function tick(){
+      if(!session || session.finished) return;
+      const now = performance.now();
+      session.elapsed += now - session.lastTick;
+      session.lastTick = now;
+      timerEl.textContent = fmt(session.elapsed);
+      if(session.mode==='sprint' && session.elapsed>=60000){ finish(); return; }
+      requestAnimationFrame(tick);
+    }
+
+    function submit(skipped=false){
+      if(!session || session.finished) return;
+      const val = skipped ? null : Number(answer.value);
+      const ok = !skipped && (val === session.current.sol);
+
+      if(ok){
+        session.good++; goodEl.textContent = String(session.good);
+        session.streak++; streakEl.textContent = String(session.streak);
+        feedback.textContent = '✅ Bravo !'; feedback.className = 'feedback ok';
+      }else{
+        session.bad++; badEl.textContent = String(session.bad);
+        session.streak = 0; streakEl.textContent = '0';
+        feedback.textContent = '❌ Mauvaise réponse. La bonne est '+session.current.sol; feedback.className = 'feedback bad';
+        const key = session.current.a+'×'+session.current.b;
+        session.mistakes[key] = (session.mistakes[key]||0) + 1;
+      }
+
+      session.history.push({a:session.current.a,b:session.current.b,ans:val,ok,ts:Date.now()});
+      if(instantCb.checked || ok || skipped){ nextQuestion(); }
+    }
+
+    function finish(){
+      if(!session || session.finished) return;
+      session.finished = true;
+      okBtn.disabled = true; skipBtn.disabled = true;
+      play.style.display='none'; resultEl.classList.add('active');
+
+      const asked = session.history.length;
+      const pct = asked ? Math.round(100*session.good/asked) : 0;
+      scorePct.textContent = pct;
+      totalTime.textContent = fmt(session.elapsed);
+      tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
+
+      mistakesUl.innerHTML = '';
+      const items = Object.entries(session.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,8);
+      if(items.length===0){
+        const li = document.createElement('li'); li.textContent = 'Aucune erreur — super !'; mistakesUl.appendChild(li);
+      }else{
+        items.forEach(([k,c]) => {
+          const li = document.createElement('li'); li.textContent = `${k}  ×${c}`; mistakesUl.appendChild(li);
+        });
       }
     }
+
+    // Events
+    startBtn.addEventListener('click', newSession);
+    resetBtn.addEventListener('click', ()=>{
+      localStorage.removeItem('cm_history');
+      setDefaults();
+      alert('Paramètres réinitialisés.');
+    });
+    okBtn.addEventListener('click', ()=>submit(false));
+    skipBtn.addEventListener('click', ()=>submit(true));
+    answer.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); submit(false);} });
+
+    // PWA SW (au cas où)
+    if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
   </script>
 </body>
 </html>
