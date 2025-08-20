@@ -1,12 +1,12 @@
 // sw.js
-const CACHE = 'cm-v6'; // change de numéro si tu modifies les fichiers
+const CACHE = 'cm-v6'; // <- Incrémente à chaque modif d'assets
 const ASSETS = [
-  './',                   // racine du site (index.html)
-  './index.html',
-  './fireworks.js',
-  './icon-192.png',
-  './icon-512.png',
-  './manifest.webmanifest',
+  './',                // racine du site dans le sous-dossier GitHub Pages
+  'index.html',
+  'fireworks.js',
+  'icon-192.png',
+  'icon-512.png',
+  'manifest.webmanifest'
 ];
 
 // --- Install & precache
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (event) => {
   // Pour les navigations (ouvrir/rafraîchir une page)
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('./index.html'))
+      fetch(req).catch(() => caches.match('index.html'))
     );
     return;
   }
