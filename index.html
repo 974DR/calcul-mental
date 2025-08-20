@@ -395,5 +395,38 @@ tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—'
   </script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 <script src="fireworks.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const intro = document.getElementById('intro');
+  if (!intro) return; // intro absent → on sort
+
+  const introStartBtn = document.getElementById('introBtn');
+  const introSkipBtn  = document.getElementById('skipIntro');
+  const SEEN_KEY = 'cm_intro_seen_v1';
+
+  // Si déjà vue, on masque l’intro
+  if (localStorage.getItem(SEEN_KEY)) {
+    intro.classList.add('hide');
+    return; // rien d'autre à faire
+  }
+
+  function closeIntro(playSound){
+    try{
+      if (playSound) {
+        const audio = new Audio('intro-sound.mp3');
+        audio.play().catch(()=>{});
+      }
+    }catch(e){}
+    intro.classList.add('hide');
+    localStorage.setItem(SEEN_KEY, '1');
+    // focus sur Démarrer pour enchaîner
+    const start = document.getElementById('startBtn');
+    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+  }
+
+  introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
+  introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
+});
+</script>
 </body>
 </html>
