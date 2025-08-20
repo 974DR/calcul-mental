@@ -1,21 +1,23 @@
 // sw.js
-const CACHE = 'cm-v4';
+const CACHE = 'cm-v5'; // change à chaque modif de la liste ASSETS
 const ASSETS = [
-  './',
-  './index.html',
-  './manifest.webmanifest',
-  './icon-192.png',
-  './icon-512.png',
-  './fireworks.js' // si présent
+  '/',                   // GitHub Pages (racine du site)
+  '/index.html',
+  '/fireworks.js',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/manifest.webmanifest',
 ];
 
-// Installe et précache
+// --- Install & precache
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
+  event.waitUntil(
+    caches.open(CACHE).then((cache) => cache.addAll(ASSETS))
+  );
   self.skipWaiting();
 });
 
-// Active et nettoie les anciens caches
+// --- Activate & clean old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -25,19 +27,19 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Navigation: réseau d'abord, sinon index offline
+// --- Fetch strategy
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Pour les navigations (tap sur un lien / chargement page)
+  // Pour les navigations (ouvrir/rafraîchir une page)
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('./index.html'))
+      fetch(req).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // Pour le reste: cache d'abord puis réseau
+  // Pour le reste : cache d'abord, sinon réseau
   event.respondWith(
     caches.match(req).then((res) => res || fetch(req))
   );
