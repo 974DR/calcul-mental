@@ -18,6 +18,17 @@
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
+      <!-- INTRO OVERLAY -->
+<div id="intro" aria-hidden="true">
+  <div class="stars"></div>
+  <div class="stars2"></div>
+  <div class="intro-center">
+    <div class="intro-logo">974DR</div>
+    <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
+    <button id="introBtn" class="intro-btn">Entrer</button>
+    <button id="skipIntro" class="intro-skip" aria-label="Passer l'introduction">Passer</button>
+  </div>
+</div>
       margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color:var(--text);
       background: radial-gradient(1200px 800px at 10% -10%, #1a232f 0%, var(--bg) 55%) fixed;
