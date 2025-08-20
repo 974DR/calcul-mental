@@ -184,7 +184,32 @@
       </div>
     </section>
   </div>
+<script>
+(function(){
+  const intro = document.getElementById('intro');
+  const startBtn = document.getElementById('introBtn');
+  const skipBtn  = document.getElementById('skipIntro');
 
+  const SEEN_KEY = 'cm_intro_seen_v1';
+  if (localStorage.getItem(SEEN_KEY)) intro.classList.add('hide');
+
+  function closeIntro(playSound){
+    try{
+      if(playSound){
+        const audio = new Audio('intro-sound.mp3'); // facultatif
+        audio.play().catch(()=>{});
+      }
+    }catch(e){}
+    intro.classList.add('hide');
+    localStorage.setItem(SEEN_KEY, '1');
+    const start = document.getElementById('startBtn');
+    if(start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+  }
+
+  startBtn?.addEventListener('click', ()=>closeIntro(true));
+  skipBtn?.addEventListener('click', ()=>closeIntro(false));
+})();
+</script>
   <script>
     // PWA : enregistrement du Service Worker
     if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
