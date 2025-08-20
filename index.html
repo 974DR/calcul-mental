@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+p<!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="utf-8" />
@@ -371,11 +371,17 @@
       okBtn.disabled = true; skipBtn.disabled = true;
       play.style.display='none'; resultEl.classList.add('active');
 
-      const asked = session.history.length;
-      const pct = asked ? Math.round(100*session.good/asked) : 0;
-      scorePct.textContent = pct;
-      totalTime.textContent = fmt(session.elapsed);
-      tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
+    const asked = session.history.length;
+const pct = asked ? Math.round(100*session.good/asked) : 0;
+scorePct.textContent = pct;
+
+// 🎆 Feu d’artifice si 100%
+if (pct === 100) {
+  showFireworks(5000);
+}
+
+totalTime.textContent = fmt(session.elapsed);
+tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
 
       mistakesUl.innerHTML = '';
       const items = Object.entries(session.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,8);
