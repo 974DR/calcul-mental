@@ -1,3 +1,33 @@
+<script>
+  // ----- INTRO logic ---------------------------------------------------------
+  (function(){
+    const intro = document.getElementById('intro');
+    const startBtn = document.getElementById('introBtn');
+    const skipBtn  = document.getElementById('skipIntro');
+
+    // Ne montrer l'intro qu'une fois par appareil (jusqu'au prochain vidage du cache)
+    const SEEN_KEY = 'cm_intro_seen_v1';
+    const seen = localStorage.getItem(SEEN_KEY);
+    if(seen){ intro.classList.add('hide'); } // déjà vu → pas d'intro
+
+    function closeIntro(playSound){
+      try{
+        if(playSound){
+          const audio = new Audio('intro-sound.mp3'); // facultatif
+          audio.play().catch(()=>{}); // iOS exige un clic pour jouer: on est dans un clic, donc OK
+        }
+      }catch(e){}
+      intro.classList.add('hide');
+      localStorage.setItem(SEEN_KEY, '1');
+      // focus sur le bouton Démarrer si présent
+      const start = document.getElementById('startBtn');
+      if(start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+    }
+
+    startBtn?.addEventListener('click', ()=>closeIntro(true));
+    skipBtn?.addEventListener('click', ()=>closeIntro(false));
+  })();
+</script>
 const CACHE = 'cm-v1';
 const ASSETS = [
   './',
