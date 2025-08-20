@@ -423,5 +423,34 @@ document.getElementById('skipIntro')?.addEventListener('click', () => {
   localStorage.setItem('cm_intro_seen_v1','1');
 });
 </script>
+  <script>
+(function(){
+  const intro = document.getElementById('intro');
+  if (!intro) return;
+
+  const introStartBtn = document.getElementById('introBtn');
+  const introSkipBtn  = document.getElementById('skipIntro');
+  const SEEN_KEY = 'cm_intro_seen_v1';
+
+  // Si déjà vue, on masque l’intro
+  if (localStorage.getItem(SEEN_KEY)) {
+    intro.classList.add('hide');
+    return;
+  }
+
+  function closeIntro(playSound){
+    try{
+      if (playSound) new Audio('intro-sound.mp3').play().catch(()=>{});
+    }catch(e){}
+    intro.classList.add('hide');
+    localStorage.setItem(SEEN_KEY, '1');
+    const start = document.getElementById('startBtn');
+    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+  }
+
+  introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
+  introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
+})();
+</script>
 </body>
 </html>
