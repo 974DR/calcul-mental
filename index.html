@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title> 974DR — Calcul mental</title>
+  <title>974DR — Calcul mental</title>
 
   <!-- Icône & PWA -->
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -16,7 +16,7 @@
       --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1);
     }
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";}
  
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
@@ -57,55 +57,54 @@
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
     .muted{color:var(--muted)}
-    /* ===== Intro plein-écran =================================================== */
-#intro{
-  position:fixed; inset:0; z-index:9999; background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
-  display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;
-}
-#intro.hide{ opacity:0; pointer-events:none; }
 
-.intro-center{ text-align:center; padding:24px; }
-.intro-logo{
-  font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
-  background:linear-gradient(135deg,#8dd0ff,#9b72ff);
-  -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
-  animation: popIn .9s cubic-bezier(.2,.9,.2,1) both;
-}
-.intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
-.intro-btn{
-  appearance:none; border:none; border-radius:14px; padding:12px 18px; font-weight:800; cursor:pointer;
-  background:linear-gradient(135deg,#4aa7ff,#8dd0ff); color:#03111f; margin-right:8px;
-}
-.intro-skip{ background:transparent; border:1px solid rgba(255,255,255,.15); color:#d3dbe5; border-radius:14px; padding:10px 14px; }
+    /* ===== Intro plein-écran ===== */
+    #intro{
+      position:fixed; inset:0; z-index:9999;
+      background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
+      display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;
+    }
+    #intro.hide{ opacity:0; pointer-events:none; }
+    .intro-center{ text-align:center; padding:24px; }
+    .intro-logo{
+      font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
+      background:linear-gradient(135deg,#8dd0ff,#9b72ff);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
+      animation: popIn .9s cubic-bezier(.2,.9,.2,1) both;
+    }
+    .intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
+    .intro-btn{
+      appearance:none; border:none; border-radius:14px; padding:12px 18px; font-weight:800; cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff); color:#03111f; margin-right:8px;
+    }
+    .intro-skip{ background:transparent; border:1px solid rgba(255,255,255,.15); color:#d3dbe5; border-radius:14px; padding:10px 14px; }
+    @keyframes popIn{ from{ transform:scale(.8); opacity:0 } to{ transform:scale(1); opacity:1 } }
+    .stars,.stars2{ position:absolute; inset:-200% -200%; background-repeat:repeat; animation: drift 60s linear infinite; opacity:.6 }
+    .stars{ background-image: radial-gradient(2px 2px at 20px 30px,#fff,transparent), radial-gradient(1px 1px at 50px 80px,#fff,transparent), radial-gradient(1.5px 1.5px at 90px 40px,#fff,transparent), radial-gradient(1px 1px at 130px 120px,#fff,transparent); background-size: 200px 200px; }
+    .stars2{ background-image: radial-gradient(1.5px 1.5px at 60px 10px,#fff,transparent), radial-gradient(1px 1px at 120px 70px,#fff,transparent), radial-gradient(1.5px 1.5px at 170px 150px,#fff,transparent); background-size: 250px 250px; animation-duration: 90s; opacity:.35 }
+    @keyframes drift{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-200px,-200px,0) } }
 
-@keyframes popIn{ from{ transform:scale(.8); opacity:0 } to{ transform:scale(1); opacity:1 } }
-
-/* étoiles */
-.stars,.stars2{ position:absolute; inset:-200% -200%; background-repeat:repeat; animation: drift 60s linear infinite; opacity:.6 }
-.stars{ background-image: radial-gradient(2px 2px at 20px 30px,#fff,transparent), radial-gradient(1px 1px at 50px 80px,#fff,transparent), radial-gradient(1.5px 1.5px at 90px 40px,#fff,transparent), radial-gradient(1px 1px at 130px 120px,#fff,transparent); background-size: 200px 200px; }
-.stars2{ background-image: radial-gradient(1.5px 1.5px at 60px 10px,#fff,transparent), radial-gradient(1px 1px at 120px 70px,#fff,transparent), radial-gradient(1.5px 1.5px at 170px 150px,#fff,transparent); background-size: 250px 250px; animation-duration: 90s; opacity:.35 }
-@keyframes drift{ from{ transform:translate3d(0,0,0) } to{ transform:translate3d(-200px,-200px,0) } }
-
-/* accessibilité */
-@media (prefers-reduced-motion: reduce){
-  .stars,.stars2{ animation:none }
-  .intro-logo{ animation:none }
-}
+    /* accessibilité */
+    @media (prefers-reduced-motion: reduce){
+      .stars,.stars2{ animation:none }
+      .intro-logo{ animation:none }
+    }
   </style>
 </head>
 <body>
- <!-- INTRO OVERLAY -->
-<div id="intro" aria-hidden="true">
-  <div class="stars"></div>
-  <div class="stars2"></div>
-  <div class="intro-center">
-    <div class="intro-logo">974DR</div>
-    <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
-    <button id="introBtn" class="intro-btn">Entrer</button>
-    <button id="skipIntro" class="intro-skip" aria-label="Passer l'introduction">Passer</button>
+  <!-- INTRO OVERLAY -->
+  <div id="intro" aria-hidden="true">
+    <div class="stars"></div>
+    <div class="stars2"></div>
+    <div class="intro-center">
+      <div class="intro-logo">974DR</div>
+      <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
+      <button id="introBtn" class="intro-btn">Entrer</button>
+      <button id="skipIntro" class="intro-skip" aria-label="Passer l'introduction">Passer</button>
+    </div>
   </div>
-</div>
+
   <div class="wrap">
     <header>
       <div class="logo"><span>×</span></div>
@@ -115,10 +114,10 @@
       </div>
     </header>
 
-  <div class="banner">
-  💙 Vive la 974DR ! 💙 <br>
-  💚 Vive Sécheron ! 💚
-</div>
+    <div class="banner">
+      💙 Vive la 974DR ! 💙 <br>
+      💚 Vive Sécheron ! 💚
+    </div>
 
     <section class="card">
       <div class="grid">
@@ -153,7 +152,7 @@
           <div id="play" class="card" style="display:none">
             <div class="question"><span id="qa"></span> <span class="op">×</span> <span id="qb"></span> <span class="op">=</span> ?</div>
             <div class="input-line">
-              <input id="answer" type="number" inputmode="numeric" placeholder="Ta réponse">
+              <input id="answer" type="number" inputmode="numeric" placeholder="Ta réponse" autocomplete="off">
               <button id="okBtn">Valider</button>
               <button class="secondary" id="skipBtn">Je ne sais pas</button>
             </div>
@@ -180,9 +179,12 @@
     </section>
   </div>
 
+  <!-- ===== JS principal (jeu) ===== -->
   <script>
     // PWA : enregistrement du Service Worker
-    if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    }
 
     // --------- Sélection éléments
     const tablesGrid = document.getElementById('tablesGrid');
@@ -218,7 +220,7 @@
     const againBtn = document.getElementById('againBtn');
 
     // --------- Construction des cases des tables (2..11)
-    for(let t=2;t<=11;t++){
+    for (let t=2; t<=11; t++){
       const label = document.createElement('label');
       label.className = 'chip';
       label.innerHTML = '<input type="checkbox" class="table-check" value="'+t+'"> ×'+t;
@@ -341,17 +343,17 @@
       okBtn.disabled = true; skipBtn.disabled = true;
       play.style.display='none'; resultEl.classList.add('active');
 
-    const asked = session.history.length;
-const pct = asked ? Math.round(100*session.good/asked) : 0;
-scorePct.textContent = pct;
+      const asked = session.history.length;
+      const pct = asked ? Math.round(100*session.good/asked) : 0;
+      scorePct.textContent = pct;
 
-// 🎆 Feu d’artifice si 100%
-if (pct === 100) {
-  showFireworks(5000);
-}
+      // 🎆 Feu d’artifice si 100%
+      if (pct === 100) {
+        showFireworks(5000);
+      }
 
-totalTime.textContent = fmt(session.elapsed);
-tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
+      totalTime.textContent = fmt(session.elapsed);
+      tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
 
       mistakesUl.innerHTML = '';
       const items = Object.entries(session.mistakes).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -377,80 +379,46 @@ tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—'
     okBtn.addEventListener('click', ()=>submit(false));
     skipBtn.addEventListener('click', ()=>submit(true));
     answer.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); submit(false);} });
+    againBtn.addEventListener('click', ()=>{ resultEl.classList.remove('active'); newSession(); });
   </script>
+
+  <!-- Confetti + Fireworks (en bas) -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-<script src="fireworks.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  const intro = document.getElementById('intro');
-  if (!intro) return; // intro absent → on sort
+  <script src="fireworks.js"></script>
 
-  const introStartBtn = document.getElementById('introBtn');
-  const introSkipBtn  = document.getElementById('skipIntro');
-  const SEEN_KEY = 'cm_intro_seen_v1';
+  <!-- Intro (UN SEUL script pour l’intro) -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const intro = document.getElementById('intro');
+      if (!intro) return;
 
-  // Si déjà vue, on masque l’intro
-  if (localStorage.getItem(SEEN_KEY)) {
-    intro.classList.add('hide');
-    return; // rien d'autre à faire
-  }
+      const introStartBtn = document.getElementById('introBtn');
+      const introSkipBtn  = document.getElementById('skipIntro');
+      const SEEN_KEY = 'cm_intro_seen_v1';
 
-  function closeIntro(playSound){
-    try{
-      if (playSound) {
-        const audio = new Audio('intro-sound.mp3');
-        audio.play().catch(()=>{});
+      // Si déjà vue, on masque l’intro
+      if (localStorage.getItem(SEEN_KEY)) {
+        intro.classList.add('hide');
+        return;
       }
-    }catch(e){}
-    intro.classList.add('hide');
-    localStorage.setItem(SEEN_KEY, '1');
-    // focus sur Démarrer pour enchaîner
-    const start = document.getElementById('startBtn');
-    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-  }
 
-  introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
-  introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
-});
-</script>
-  <script>
-document.getElementById('introBtn')?.addEventListener('click', () => {
-  document.getElementById('intro')?.classList.add('hide');
-  localStorage.setItem('cm_intro_seen_v1','1');
-});
-document.getElementById('skipIntro')?.addEventListener('click', () => {
-  document.getElementById('intro')?.classList.add('hide');
-  localStorage.setItem('cm_intro_seen_v1','1');
-});
-</script>
-  <script>
-(function(){
-  const intro = document.getElementById('intro');
-  if (!intro) return;
+      function closeIntro(playSound){
+        try{
+          if (playSound) {
+            const audio = new Audio('intro-sound.mp3');
+            audio.play().catch(()=>{});
+          }
+        }catch(e){}
+        intro.classList.add('hide');
+        localStorage.setItem(SEEN_KEY, '1');
+        // focus sur Démarrer
+        const start = document.getElementById('startBtn');
+        if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+      }
 
-  const introStartBtn = document.getElementById('introBtn');
-  const introSkipBtn  = document.getElementById('skipIntro');
-  const SEEN_KEY = 'cm_intro_seen_v1';
-
-  // Si déjà vue, on masque l’intro
-  if (localStorage.getItem(SEEN_KEY)) {
-    intro.classList.add('hide');
-    return;
-  }
-
-  function closeIntro(playSound){
-    try{
-      if (playSound) new Audio('intro-sound.mp3').play().catch(()=>{});
-    }catch(e){}
-    intro.classList.add('hide');
-    localStorage.setItem(SEEN_KEY, '1');
-    const start = document.getElementById('startBtn');
-    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-  }
-
-  introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
-  introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
-})();
-</script>
+      introStartBtn && introStartBtn.addEventListener('click', ()=>closeIntro(true));
+      introSkipBtn  && introSkipBtn.addEventListener('click', ()=>closeIntro(false));
+    });
+  </script>
 </body>
 </html>
