@@ -4,15 +4,25 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calcul mental — Tables de multiplication</title>
-<link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Icône pour iPhone/iPad -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Manifest pour PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- Couleur de thème (barre du haut sur mobile) -->
   <meta name="theme-color" content="#0e0f12">
 </head>
 <body>
   <h1>Calcul mental — Tables de multiplication</h1>
-  <p>Application PWA hors-ligne. Ouvrez ce fichier sur GitHub Pages pour tester.</p>
+  <p>Application PWA hors-ligne. Ouvrez ce site depuis GitHub Pages pour tester.</p>
+
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js');
+      navigator.serviceWorker.register('sw.js')
+        .then(() => console.log("Service Worker enregistré."))
+        .catch(err => console.error("Erreur SW :", err));
     }
   </script>
 </body>
