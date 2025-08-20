@@ -334,7 +334,7 @@
       const pct = asked ? Math.round(100*session.good/asked) : 0;
       scorePct.textContent = pct;
 
-      if (pct === 100) { showFireworks(5000); }
+      if (pct === 100) { showFireworks(7000); }
 
       totalTime.textContent = fmt(session.elapsed);
       tPerQ.textContent = asked ? (session.elapsed/asked/1000).toFixed(1)+' s' : '—';
