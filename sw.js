@@ -1,17 +1,15 @@
-// sw.js (pas de balises <script> ici)
-const CACHE = 'cm-v3';
+// sw.js
+const CACHE = 'cm-v4';
 const ASSETS = [
-  '/',                 // si ton SW est à la racine du site
-  '/index.html',
-  '/styles.css',       // ajoute tes fichiers réels
-  '/app.js',
-  '/intro-sound.mp3',  // si utilisé
-  '/icon-192.png',
-  '/icon-512.png',
-  '/manifest.webmanifest'
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png',
+  './fireworks.js' // si présent
 ];
 
-// Installe et precache
+// Installe et précache
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(ASSETS)));
   self.skipWaiting();
@@ -27,14 +25,14 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Réseau d'abord pour les requêtes de même origine, sinon fallback offline
+// Navigation: réseau d'abord, sinon index offline
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Pour les navigations (tap sur un lien), renvoyer index.html en offline
+  // Pour les navigations (tap sur un lien / chargement page)
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req).catch(() => caches.match('/index.html'))
+      fetch(req).catch(() => caches.match('./index.html'))
     );
     return;
   }
