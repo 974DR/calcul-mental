@@ -4,25 +4,42 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Calcul mental — Tables de multiplication</title>
-
-  <!-- Icône pour iPhone/iPad -->
   <link rel="apple-touch-icon" href="icon-192.png">
-
-  <!-- Manifest pour PWA -->
-  <link rel="manifest" href="manifest.webmanifest">
-
-  <!-- Couleur de thème (barre du haut sur mobile) -->
   <meta name="theme-color" content="#0e0f12">
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 30px; }
+    h1 { color: #2c3e50; }
+    button { font-size: 18px; padding: 10px 20px; margin-top: 15px; }
+    #question { font-size: 22px; margin: 20px; }
+    #result { margin-top: 10px; font-weight: bold; }
+  </style>
 </head>
 <body>
   <h1>Calcul mental — Tables de multiplication</h1>
-  <p>Application PWA hors-ligne. Ouvrez ce site depuis GitHub Pages pour tester.</p>
+  <p id="question">Clique sur "Nouvelle question" pour commencer</p>
+  <input type="number" id="answer" placeholder="Ta réponse">
+  <button onclick="checkAnswer()">Valider</button>
+  <button onclick="newQuestion()">Nouvelle question</button>
+  <p id="result"></p>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
-        .then(() => console.log("Service Worker enregistré."))
-        .catch(err => console.error("Erreur SW :", err));
+    let a, b;
+
+    function newQuestion() {
+      a = Math.floor(Math.random() * 11); // 0 à 10
+      b = Math.floor(Math.random() * 11);
+      document.getElementById("question").innerText = `Combien fait ${a} × ${b} ?`;
+      document.getElementById("answer").value = "";
+      document.getElementById("result").innerText = "";
+    }
+
+    function checkAnswer() {
+      const userAnswer = parseInt(document.getElementById("answer").value);
+      if (userAnswer === a * b) {
+        document.getElementById("result").innerText = "✅ Bravo, c'est correct !";
+      } else {
+        document.getElementById("result").innerText = `❌ Mauvaise réponse. La bonne réponse est ${a * b}.`;
+      }
     }
   </script>
 </body>
