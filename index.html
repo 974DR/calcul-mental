@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
-  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="manifest" href="manifest.webmanifest" />
   <meta name="theme-color" content="#0e0f12" />
 
   <style>
@@ -165,7 +165,13 @@
     function end(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='block';
-      document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
+      const pct = Math.round(100*good/qCount)||0;
+      document.getElementById('scorePct').textContent = pct;
+
+      // 🎆 Feux d’artifice à 100%
+      if (pct === 100 && qCount > 0 && typeof window.showFireworks === 'function') {
+        window.showFireworks(5000);
+      }
     }
 
     // 🔙 Retour au menu
@@ -174,7 +180,7 @@
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
       document.getElementById('intro').classList.remove('hide');
-      homeBtn.classList.add('hidden');       // cache 🏠 au menu
+      homeBtn.classList.add('hidden');
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
@@ -194,18 +200,31 @@
 
       function closeIntro(){
         intro.classList.add('hide');
-        homeBtn.classList.remove('hidden');  // montre 🏠
+        homeBtn.classList.remove('hidden');
       }
       multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
       divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
     })();
   </script>
 
-  <!-- Service worker DANS le dossier /calcul-mental/ (scope automatique) -->
+  <!-- Son pour les explosions (helpers accessibles par fireworks.js) -->
+  <script>
+    (function () {
+      const audio = new Audio('fireworks.mp3');
+      audio.preload = 'auto';
+      audio.volume = 0.35;
+      window.__playFireworkSound = () => { try { audio.currentTime = 0; audio.play(); } catch(e){} };
+      window.__stopFireworksSound = () => { try { audio.pause(); } catch(e){} };
+    })();
+  </script>
+
+  <!-- Effet visuel des feux d’artifice -->
+  <script src="fireworks.js?v=1"></script>
+
+  <!-- Service worker à la racine -->
   <script>
     if ('serviceWorker' in navigator) {
-      // le SW est à /calcul-mental/sw.js, donc scope = /calcul-mental/
-      navigator.serviceWorker.register('sw.js?v=18')
+      navigator.serviceWorker.register('sw.js?v=19')
         .then(reg => reg.update())
         .catch(()=>{});
     }
