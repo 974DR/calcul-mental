@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
+
+  <!-- PWA -->
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f12" />
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -47,8 +49,8 @@
     .result{display:none} .result.active{display:block}
 
     /* Intro (overlay) */
-    #intro{position:fixed;inset:0;z-index:9999;background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
-      display:grid;place-items:center;opacity:1;transition:opacity .6s ease;pointer-events:auto;}
+    #intro{position:fixed;inset:0;z-index:9000;background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
+      display:grid;place-items:center;opacity:1;transition:opacity .6s ease}
     #intro.hide{opacity:0;pointer-events:none}
     .intro-center{text-align:center;padding:24px}
     .intro-logo{font-weight:900;letter-spacing:2px;font-size:clamp(36px,12vw,96px);
@@ -56,12 +58,26 @@
     .intro-sub{color:#c9d6e2;margin:6px 0 16px;font-size:clamp(14px,3.5vw,18px);opacity:.9}
     .intro-heart{font-size:22px;color:#ff4d4d;font-weight:800;margin-bottom:14px}
     .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px}
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:12px}
 
-    /* Grille de tables ×2..×11 */
+    /* grille des tables */
     .tables{display:grid;grid-template-columns:repeat(4,minmax(90px,1fr));gap:10px}
     @media (max-width:520px){.tables{grid-template-columns:repeat(3,minmax(90px,1fr))}}
     .table-chip{display:flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--border);background:#0f1218;border-radius:12px;padding:10px;font-weight:700}
+
+    /* Overlay vidéos */
+    #videosOverlay{position:fixed;inset:0;z-index:9500;display:none}
+    #videosBackdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px)}
+    #videosModal{position:relative;max-width:980px;margin:40px auto;padding:16px;border:1px solid var(--border);border-radius:14px;background:rgba(20,24,31,.95)}
+    .video-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:10px}
+    .video-card{background:#0f1218;border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer}
+    .video-card img{width:100%;display:block}
+    .video-card .vc-title{padding:8px 10px;font-size:14px;color:var(--muted)}
+    .player-wrap{position:relative;padding-top:56.25%;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-top:14px}
+    .player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+    .add-video{display:flex;gap:8px;margin-top:10px}
+    .add-video input{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#0f1218;color:var(--text)}
   </style>
 </head>
 <body>
@@ -72,8 +88,9 @@
       <div class="intro-logo">974DR</div>
       <div class="intro-sub">✨ Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
-      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
-      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br>
+      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button><br>
+      <button id="introVidBtn" class="intro-btn" type="button">Vidéos de théorie</button>
     </div>
   </div>
 
@@ -88,27 +105,26 @@
     <section class="card">
       <div class="grid">
         <div>
-          <!-- Modes d'entraînement -->
+          <!-- Modes -->
           <div class="toggle">
             <label><input type="radio" name="runmode" value="train" checked> Entraînement</label>
             <label><input type="radio" name="runmode" value="sprint"> Sprint 60 s</label>
           </div>
 
-          <!-- Nb questions (actif seulement en entraînement) -->
-          <div class="chip" style="margin-top:8px">
+          <!-- Nb questions (train seulement) -->
+          <div class="chip">
             <label>Nb questions
               <input id="numQ" type="number" value="20" min="1" max="200" style="margin-left:8px">
             </label>
           </div>
 
-          <!-- Choix des tables -->
-          <div class="chip" id="blockTablesTitle" style="margin-top:8px">
-            <strong>Toutes (2–11)</strong>
+          <!-- Choix des tables (multiplication) -->
+          <div class="chip" id="blockTablesTitle"><strong>Toutes (2–11)</strong>
             <input id="allTables" type="checkbox" style="margin-left:8px" checked>
           </div>
-          <div id="tablesBlock" class="tables" style="margin-top:8px"></div>
+          <div id="tablesBlock" class="tables" aria-label="Sélection des tables"></div>
 
-          <!-- Plage second facteur -->
+          <!-- Plage du second facteur -->
           <div class="chip mini" id="rangeBlock" style="margin-top:8px;gap:10px;flex-wrap:wrap">
             <span>Deuxième facteur de</span>
             <input id="bMin" type="number" value="0" min="0" max="11">
@@ -116,7 +132,7 @@
             <input id="bMax" type="number" value="11" min="0" max="11">
           </div>
 
-          <button id="startBtn" style="margin-top:12px">Démarrer</button>
+          <button id="startBtn" style="margin-top:10px">Démarrer</button>
         </div>
 
         <div>
@@ -149,44 +165,68 @@
     </section>
   </div>
 
-  <!-- Audio feux d’artifice -->
+  <!-- Overlay Vidéos -->
+  <div id="videosOverlay">
+    <div id="videosBackdrop"></div>
+    <div id="videosModal">
+      <div class="video-header">
+        <div style="font-weight:800">Vidéos de théorie</div>
+        <div style="display:flex;gap:8px">
+          <button id="closeVideosBtn" class="secondary">✖️ Fermer</button>
+          <button id="backToMenuFromVideos">Retour menu</button>
+        </div>
+      </div>
+      <div class="add-video">
+        <input id="videoInput" type="url" placeholder="Coller un lien YouTube (shorts ou vidéo)...">
+        <button id="addVideoBtn">Ajouter</button>
+      </div>
+      <div class="video-grid" id="videoGrid"></div>
+      <div class="player-wrap" id="playerWrap" style="display:none">
+        <iframe id="ytPlayer" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio feux d'artifice -->
   <audio id="fwSound" preload="auto">
     <source src="fireworks.mp3" type="audio/mpeg">
   </audio>
 
-  <!-- Déverrouillage audio iOS + API start/stop pour fireworks.js -->
+  <!-- Déverrouillage audio iOS + pont pour fireworks.js -->
   <script>
     (function () {
       const a = document.getElementById('fwSound');
       let unlocked = false;
-
-      function tryUnlock() {
+      function unlockOnce() {
         if (unlocked) return;
         const p = a.play();
         if (p && p.then) {
           p.then(() => { a.pause(); a.currentTime = 0; unlocked = true; })
-           .catch(()=>{ /* silencieux, iOS attendra le prochain geste */ });
-        } else {
-          a.pause(); a.currentTime = 0; unlocked = true;
-        }
+           .catch(()=>{});
+        } else { a.pause(); a.currentTime=0; unlocked=true; }
       }
+      ['introMultBtn','introDivBtn','introVidBtn','startBtn','okBtn','againBtn','backBtn','backFromResult']
+        .forEach(id=>{
+          const el=document.getElementById(id);
+          if(el) el.addEventListener('click', unlockOnce, {once:true});
+        });
 
-      ['introMultBtn','introDivBtn','startBtn','okBtn','againBtn','backBtn'].forEach(id=>{
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('click', tryUnlock, {once:true});
-      });
-
-      window.__startFireworksSound = () => { if(!unlocked) return; try{ a.loop = true; a.currentTime = 0; a.play(); }catch{} };
-      window.__stopFireworksSound  = () => { try{ a.loop = false; a.pause(); a.currentTime = 0; }catch{} };
+      window.__startFireworksSound = () => {
+        if (!unlocked) return;
+        try { a.loop = true; a.currentTime = 0; a.play(); } catch {}
+      };
+      window.__stopFireworksSound = () => {
+        try { a.loop = false; a.pause(); a.currentTime = 0; } catch {}
+      };
     })();
   </script>
 
-  <!-- Visuel feux d’artifice -->
+  <!-- Feux d'artifice -->
   <script src="fireworks.js"></script>
 
-  <!-- LOGIQUE DU JEU -->
+  <!-- LOGIQUE DU SITE -->
   <script>
-    // --------- ÉTAT ---------
+    // ---------- ÉTAT ----------
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=20;
     let currentMode="mult"; // 'mult' | 'div'
     let runMode="train";    // 'train' | 'sprint'
@@ -196,7 +236,7 @@
     let tablesSel = new Set([2,3,4,5,6,7,8,9,10,11]);
     let bMin=0, bMax=11;
 
-    // --------- DOM ---------
+    // ---------- DOM ----------
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
           opEl=document.getElementById('op'),
@@ -223,6 +263,7 @@
       });
     }
 
+    // ---------- PREFS ----------
     function syncFromPrefs(){
       const prefs = JSON.parse(localStorage.getItem('cm_prefs')||'{}');
       if(prefs.numQ) numQ=prefs.numQ;
@@ -234,8 +275,8 @@
       document.getElementById('numQ').value = numQ;
       document.getElementById('bMin').value = bMin;
       document.getElementById('bMax').value = bMax;
-      const rm = document.querySelector(`input[name="runmode"][value="${runMode}"]`);
-      if (rm) rm.checked = true;
+      const rm=document.querySelector(`input[name="runmode"][value="${runMode}"]`);
+      if(rm) rm.checked = true;
 
       for(let t=2;t<=11;t++){
         document.getElementById('t'+t).checked = tablesSel.has(t);
@@ -243,18 +284,15 @@
       syncAllTables();
       toggleTrainInputs();
     }
-
     function savePrefs(){
       localStorage.setItem('cm_prefs', JSON.stringify({
         numQ, bMin, bMax, tables:[...tablesSel], runMode
       }));
     }
-
     function syncAllTables(){
       const allOn = (tablesSel.size===10);
       document.getElementById('allTables').checked = allOn;
     }
-
     document.getElementById('allTables').addEventListener('change', e=>{
       if(e.target.checked){ tablesSel = new Set([2,3,4,5,6,7,8,9,10,11]); }
       else { tablesSel.clear(); }
@@ -262,14 +300,15 @@
       savePrefs();
     });
 
-    // --------- LOGIQUE ---------
+    // ---------- LOGIQUE ----------
     function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
     function newQ(){
       if(currentMode==="mult"){
         const list = [...tablesSel];
         const qA = list.length? list[randInt(0,list.length-1)] : randInt(2,11);
-        let min=bMin, max=bMax; if(min>max){ const tmp=min; min=max; max=tmp; }
+        let min=bMin, max=bMax;
+        if(min>max){ const tmp=min; min=max; max=tmp; }
         const qB = randInt(Math.max(0,min), Math.min(11,max));
         qa=qA; qb=qB; opEl.textContent="×";
       } else {
@@ -290,7 +329,7 @@
 
       if(runMode==='train'){
         if(qCount<numQ) newQ(); else end();
-      }else{
+      }else{ // sprint
         if(Date.now()<endAt) newQ(); else end();
       }
     }
@@ -319,7 +358,7 @@
       document.getElementById('result').style.display='none';
 
       if(runMode==='sprint'){
-        endAt = Date.now()+60000; // 60 s
+        endAt = Date.now()+60000;
         timeLeftEl.textContent = 60;
         clearInterval(timer);
         timer = setInterval(()=>{
@@ -343,7 +382,7 @@
 
       // feux + son si 100%
       if(good===total && total>0){
-        if(window.showFireworks) window.showFireworks(7000); // 7s
+        if(window.showFireworks) window.showFireworks(7000);
       }
     }
 
@@ -357,24 +396,22 @@
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
-    // Boutons
+    // Boutons du jeu
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
     document.getElementById('backBtn').onclick=backToMenu;
     document.getElementById('backFromResult').onclick=backToMenu;
     homeBtn.onclick=backToMenu;
-
     document.querySelectorAll('input[name="runmode"]').forEach(r=>r.addEventListener('change',()=>{
       runMode=r.value; toggleTrainInputs(); savePrefs();
     }));
 
-    // Intro : choix du mode → on quitte l’overlay + on montre 🏠
+    // Intro : choix du mode + bouton vidéos
     (function () {
       const intro   = document.getElementById('intro');
       const multBtn = document.getElementById('introMultBtn');
       const divBtn  = document.getElementById('introDivBtn');
-
       function closeIntro(){
         intro.classList.add('hide');
         homeBtn.classList.remove('hidden');
@@ -387,10 +424,75 @@
     syncFromPrefs();
   </script>
 
-  <!-- Service worker (⚠️ incrémente v= si tu modifies sw.js) -->
+  <!-- Gestion Overlay Vidéos -->
   <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=23').then(r=>r.update()).catch(()=>{});
+    // Stockage vidéos
+    const DEFAULT_VIDEOS = [
+      'https://m.youtube.com/shorts/AEyAdwoXRlk',
+      'https://m.youtube.com/shorts/AsGTASDGnTY',
+      'https://m.youtube.com/shorts/CFtFN_IO8xU',
+      'https://m.youtube.com/watch?v=xfYx8qWnxg0'
+    ];
+    function loadVideos(){
+      return JSON.parse(localStorage.getItem("cm_videos")||"null") || DEFAULT_VIDEOS;
+    }
+    function saveVideos(arr){
+      localStorage.setItem("cm_videos", JSON.stringify(arr));
+    }
+    function ytId(url){
+      try{
+        const u=new URL(url);
+        if(u.hostname.includes("youtu.be")) return u.pathname.slice(1);
+        if(u.pathname.startsWith("/shorts/")) return u.pathname.split("/")[2];
+        if(u.searchParams.get("v")) return u.searchParams.get("v");
+      }catch{}
+      return "";
+    }
+    const ytThumb=(id)=>`https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+    const ytEmbed=(id)=>`https://www.youtube.com/embed/${id}?rel=0&modestbranding=1`;
+
+    const videosOverlay=document.getElementById("videosOverlay"),
+          videoGrid=document.getElementById("videoGrid"),
+          ytPlayer=document.getElementById("ytPlayer"),
+          playerWrap=document.getElementById("playerWrap");
+
+    let videoList = loadVideos();
+
+    function renderVideos(){
+      videoGrid.innerHTML="";
+      videoList.forEach((url,idx)=>{
+        const id=ytId(url); if(!id) return;
+        const card=document.createElement("button");
+        card.className="video-card"; card.type="button";
+        card.innerHTML=`<img src="${ytThumb(id)}" alt=""><div class="vc-title">Vidéo ${idx+1}</div>`;
+        card.onclick=()=>{ ytPlayer.src=ytEmbed(id); playerWrap.style.display=""; };
+        videoGrid.appendChild(card);
+      });
+    }
+    function openVideos(){videosOverlay.style.display="";document.body.style.overflow="hidden";renderVideos();}
+    function closeVideos(){ytPlayer.src="about:blank";playerWrap.style.display="none";videosOverlay.style.display="none";document.body.style.overflow="";}
+
+    document.getElementById("introVidBtn").onclick=()=>{openVideos();document.getElementById("intro").classList.add("hide");};
+    document.getElementById("closeVideosBtn").onclick=closeVideos;
+    document.getElementById("backToMenuFromVideos").onclick=()=>{closeVideos();document.getElementById("intro").classList.remove("hide");};
+    document.getElementById("videosBackdrop").onclick=closeVideos;
+
+    document.getElementById("addVideoBtn").onclick=()=>{
+      const url=document.getElementById("videoInput").value.trim();
+      if(!url) return;
+      const id=ytId(url);
+      if(!id){alert("URL YouTube invalide");return;}
+      videoList.push(url);
+      saveVideos(videoList);
+      renderVideos();
+      document.getElementById("videoInput").value="";
+    };
+  </script>
+
+  <!-- Service worker -->
+  <script>
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js?v=24').then(r=>r.update()).catch(()=>{});
     }
   </script>
 </body>
