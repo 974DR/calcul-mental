@@ -78,6 +78,25 @@
     .player-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
     .add-video{display:flex;gap:8px;margin-top:10px}
     .add-video input{flex:1;padding:8px 10px;border-radius:10px;border:1px solid var(--border);background:#0f1218;color:var(--text)}
+ /* ===== Overlay vidéos ===== */
+#videosOverlay{position:fixed;inset:0;z-index:9998;display:none;}
+#videosOverlay.active{display:block;}
+#videosOverlay .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);}
+#videosOverlay .sheet{
+  position:relative;max-width:920px;margin:6vh auto;background:#0f1218;
+  border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:14px;
+}
+#videosOverlay header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+#videosOverlay h3{margin:0;font-size:18px;color:#e8ecf1}
+#videosOverlay .close{border:1px solid rgba(255,255,255,.15);background:#141820;
+  color:#e8ecf1;border-radius:12px;padding:8px 10px;cursor:pointer}
+.vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:800px){.vgrid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.vgrid{grid-template-columns:1fr}}
+.vcard{background:#12161f;border:1px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden}
+.vcard iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
+.vcard .title{padding:10px;color:#cfd6df;font-size:14px}
+.no-scroll{overflow:hidden;height:100%}
   </style>
 </head>
 <body>
@@ -488,12 +507,92 @@
       document.getElementById("videoInput").value="";
     };
   </script>
+<script>
+/* ---------- Vidéos : liste + overlay ---------- */
+// Mets ici tes liens & titres
+const VIDEOS = [
+  { url:'https://m.youtube.com/shorts/AEyAdwoXRlk', title:'Astuce 1 (shorts)' },
+  { url:'https://m.youtube.com/shorts/AsGTASDGnTY', title:'Astuce 2 (shorts)' },
+  { url:'https://m.youtube.com/shorts/CFtFN_IO8xU', title:'Astuce 3 (shorts)' },
+  { url:'https://m.youtube.com/watch?v=xfYx8qWnxg0', title:'24 opérations avec décimaux' }
+];
 
+// Convertit n’importe quel lien YouTube en URL <iframe> /embed/ID
+function toEmbed(url){
+  try{
+    const u = new URL(url);
+    const host = u.hostname.replace('www.','').replace('m.','');
+    let id='';
+    if (host==='youtube.com' || host==='youtu.be'){
+      if (u.pathname.startsWith('/shorts/')) { id = u.pathname.split('/')[2]; }
+      else if (u.hostname==='youtu.be') { id = u.pathname.slice(1); }
+      else if (u.searchParams.get('v')) { id = u.searchParams.get('v'); }
+      else if (u.pathname.startsWith('/embed/')) { id = u.pathname.split('/')[2]; }
+    }
+    if (!id) return null;
+    return `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&autoplay=0`;
+  }catch{ return null; }
+}
+
+(function(){
+  const overlay = document.getElementById('videosOverlay');
+  const grid = document.getElementById('videosGrid');
+  const closeBtn = document.getElementById('closeVideosBtn');
+  const introVideosBtn = document.getElementById('introVideosBtn'); // le bouton du menu
+
+  // Construit la grille
+  grid.innerHTML = '';
+  VIDEOS.forEach(v=>{
+    const src = toEmbed(v.url);
+    if (!src) return;
+    const card = document.createElement('div');
+    card.className = 'vcard';
+    card.innerHTML = `
+      <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen src="${src}"></iframe>
+      <div class="title">${v.title||''}</div>`;
+    grid.appendChild(card);
+  });
+
+  function openVideos(){
+    overlay.classList.add('active');
+    document.documentElement.classList.add('no-scroll');
+    document.body.classList.add('no-scroll');
+  }
+  function closeVideos(){
+    // stoppe toutes les vidéos en retirant/replaçant src
+    overlay.querySelectorAll('iframe').forEach(f=>{
+      const s = f.src; f.src = ''; f.src = s.replace('autoplay=1','autoplay=0');
+    });
+    overlay.classList.remove('active');
+    document.documentElement.classList.remove('no-scroll');
+    document.body.classList.remove('no-scroll');
+  }
+
+  if (introVideosBtn) introVideosBtn.addEventListener('click', openVideos);
+  closeBtn.addEventListener('click', closeVideos);
+  overlay.querySelector('.backdrop').addEventListener('click', closeVideos);
+
+  // Optionnel : ESC pour fermer
+  window.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && overlay.classList.contains('active')) closeVideos(); });
+})();
+</script>
   <!-- Service worker -->
   <script>
     if('serviceWorker' in navigator){
       navigator.serviceWorker.register('sw.js?v=24').then(r=>r.update()).catch(()=>{});
     }
   </script>
+  <!-- ===== OVERLAY VIDÉOS ===== -->
+<div id="videosOverlay" aria-hidden="true">
+  <div class="backdrop"></div>
+  <div class="sheet">
+    <header>
+      <h3>Vidéos de théorie</h3>
+      <button class="close" id="closeVideosBtn" type="button" aria-label="Fermer">Fermer ✕</button>
+    </header>
+    <div class="vgrid" id="videosGrid"><!-- injecté par JS --></div>
+  </div>
+</div>
 </body>
 </html>
