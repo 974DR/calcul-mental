@@ -1,36 +1,33 @@
-// sw.js — v13
+// sw.js (v13) — simple, fiable
 const CACHE = 'cm-v13';
 const ASSETS = [
   'index.html',
-  'fireworks.js',        // si tu le sépares plus tard
-  'fireworks.mp3',
-  'icon-192.png',
-  'icon-512.png',
   'manifest.webmanifest',
-  'mixkit-angelic-swell-presentation-2672.wav'
+  'icon-192.png',
+  'icon-512.png'
 ];
 
-// Install: précache
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+// Install : précache de base
+self.addEventListener('install', (event) => {
+  event.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
   self.skipWaiting();
 });
 
-// Activate: purge anciens caches
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.map(k => k!==CACHE ? caches.delete(k) : null)))
+// Activate : supprime les anciens caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.map(k => (k!==CACHE ? caches.delete(k) : null))))
   );
   self.clients.claim();
 });
 
-// Fetch: HTML en network-first, le reste en cache-first
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  const wantsHTML = req.headers.get('accept') && req.headers.get('accept').includes('text/html');
+// Fetch : network-first pour HTML, cache-first pour le reste
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const wantsHTML = req.headers.get('accept')?.includes('text/html');
 
   if (wantsHTML) {
-    e.respondWith(
+    event.respondWith(
       fetch(req).then(res => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
@@ -39,5 +36,6 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
-  e.respondWith(caches.match(req).then(r => r || fetch(req)));
+
+  event.respondWith(caches.match(req).then(r => r || fetch(req)));
 });
