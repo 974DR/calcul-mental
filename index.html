@@ -458,6 +458,7 @@ document.addEventListener('visibilitychange', () => {
     setTimeout(()=>closeIntro(true), 2000);
   });
 </script>
+
   <!-- Son de feu d'artifice -->
 <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
 
@@ -470,7 +471,7 @@ document.addEventListener('visibilitychange', () => {
   for (let i = 0; i < POOL_SIZE; i++) {
     const a = new Audio(SRC);
     a.preload = 'auto';
-    a.volume = 0.6;                // ajuste si besoin (0.0–1.0)
+    a.volume = 0.6;                // ajuste le volume global
     pool.push(a);
   }
   let idx = 0;
@@ -480,14 +481,23 @@ document.addEventListener('visibilitychange', () => {
     idx = (idx + 1) % POOL_SIZE;
     try {
       a.currentTime = 0;
-      a.play().catch(()=>{/* autoplay peut être bloqué tant qu'il n'y a pas eu d'interaction */});
+      a.play().catch(()=>{});
+
+      // ⏹️ Arrêt automatique après 700 ms (à ajuster si besoin)
+      setTimeout(() => {
+        if (!a.paused) {
+          a.pause();
+          a.currentTime = 0; // prêt pour la prochaine explosion
+        }
+      }, 700);
+
     } catch(e) {}
   }
 
   // Écoute un événement personnalisé déclenché par fireworks.js
   window.addEventListener('firework:boom', playFireworkOnce);
 
-  // Si jamais aucun geste utilisateur n'a eu lieu, on "débloque" l'audio au premier clic/tap
+  // Débloque l'audio au premier geste utilisateur
   const unlock = () => {
     pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
     document.removeEventListener('click', unlock);
@@ -498,9 +508,10 @@ document.addEventListener('visibilitychange', () => {
   document.addEventListener('touchstart', unlock);
   document.addEventListener('keydown', unlock);
 
-  // Expose une fonction globale au cas où tu préfères l'appeler directement depuis fireworks.js
+  // Expose la fonction globale au cas où
   window.__playFireworkSound = playFireworkOnce;
 })();
 </script>
+  
 </body>
 </html>
