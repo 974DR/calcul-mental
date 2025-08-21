@@ -1,5 +1,5 @@
-// sw.js (v15) — simple, fiable
-const CACHE = 'cm-v15';
+// sw.js (v16) — simple, fiable
+const CACHE = 'cm-v16';
 const ASSETS = [
   'index.html',
   'manifest.webmanifest',
