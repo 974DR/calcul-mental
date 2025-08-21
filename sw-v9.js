@@ -1,31 +1,18 @@
-// sw.js
-const CACHE = 'cm-v9'; // ← nouvelle version
+// sw-v9.js
+const CACHE = 'cm-v9';
 
 // Construire des URLs relatives au scope du SW (donc /calcul-mental/)
 const toURL = (p) => new URL(p, self.location).toString();
 
 const ASSETS = [
-  '',                 // équivaut à index.html
+  '',                 // index.html
   'index.html',
   'fireworks.js',
   'icon-192.png',
   'icon-512.png',
   'manifest.webmanifest',
   'mixkit-angelic-swell-presentation-2672.wav',
-  // exemple
-const CACHE_NAME = 'v9'; // <-- augmente le numéro
-
-const FILES_TO_CACHE = [
-  '/',
-  'index.html',
-  'fireworks.js',
-  'icon-192.png',
-  'icon-512.png',
-  'manifest.webmanifest',
-  'mixkit-angelic-swell-presentation-2672.wav',
-  'fireworks.mp3' // <-- ajoute le son des feux d'artifice
-];
-  // ajoute ici d'autres fichiers si besoin (css/js) **sans** slash initial
+  'fireworks.mp3'
 ].map(toURL);
 
 // --- Install & precache
@@ -48,7 +35,6 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
 
-  // Pour les navigations (ouvrir/rafraîchir une page) → fallback sur index.html du scope
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req).catch(() => caches.match(toURL('index.html')))
@@ -56,8 +42,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Pour le reste : cache d'abord, sinon réseau
   event.respondWith(
     caches.match(req).then((res) => res || fetch(req))
   );
-}); 
+});
