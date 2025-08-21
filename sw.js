@@ -1,32 +1,48 @@
-const CACHE_NAME = "cm-v1";
-const FILES_TO_CACHE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png",
-  "./fireworks.mp3"
+// sw.js
+const CACHE_NAME = 'cm-v12';               // ⬅️ bump
+const ASSETS = [
+  'index.html',
+  'fireworks.js',
+  'fireworks.mp3',
+  'icon-192.png',
+  'icon-512.png',
+  'manifest.webmanifest',
+  'mixkit-angelic-swell-presentation-2672.wav',
 ];
 
-// Installation : mise en cache
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(FILES_TO_CACHE))
-  );
+// Install: pré-cache fichiers statiques
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
 });
 
-// Activation : suppression anciens caches
-self.addEventListener("activate", event => {
+// Activate: supprime les vieux caches
+self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))
+      Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : null)))
     )
   );
+  self.clients.claim();
 });
 
-// Interception des requêtes
-self.addEventListener("fetch", event => {
+// Fetch: HTML en network-first, le reste en cache-first
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  const isHTML = req.headers.get('accept')?.includes('text/html');
+
+  if (isHTML) {
+    event.respondWith(
+      fetch(req).then(res => {
+        const copy = res.clone();
+        caches.open(CACHE_NAME).then(c => c.put(req, copy));
+        return res;
+      }).catch(() => caches.match(req).then(r => r || caches.match('index.html')))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then(resp => resp || fetch(event.request))
+    caches.match(req).then(r => r || fetch(req))
   );
 });
