@@ -213,8 +213,8 @@
   </script>
   <script>
   if ('serviceWorker' in navigator) {
-    // on change l’URL (v=14) pour forcer le navigateur à recharger le nouveau SW
-    navigator.serviceWorker.register('sw.js?v=14')
+    // on change l’URL (v=16) pour forcer le navigateur à recharger le nouveau SW
+    navigator.serviceWorker.register('sw.js?v=16')
       .then(reg => reg.update())
       .catch(()=>{});
   }
