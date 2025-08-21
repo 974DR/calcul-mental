@@ -11,20 +11,16 @@
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
-    h1{margin:0;font-size:clamp(22px,4vw,34px)}
     .sub{color:var(--muted);font-size:14px}
     .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
     @media (max-width:850px){.grid{grid-template-columns:1fr}}
     .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
     input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);width:90px}
-    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
     button.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
     .question{font-size:clamp(28px,6vw,56px);font-weight:800;text-align:center;margin:10px 0 6px}
-    .question .op{color:var(--accent)}
     .input-line{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
-    .input-line input{font-size:22px;text-align:center;width:180px}
     .status{display:flex;gap:10px;justify-content:space-between;border-top:1px dashed var(--border);padding-top:10px;margin-top:10px;color:var(--muted)}
     .pill{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#0f1218}
     .pill.ok{border-color:rgba(52,211,153,.4);color:#d1fae5}
@@ -32,42 +28,31 @@
     .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
-
-    /* Bouton maison (icône) + utilitaires */
-    .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
-      border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
+    .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
     .hidden{display:none !important}
 
-    /* ===== Intro (overlay) ===== */
-    #intro{
-      position:fixed; inset:0; z-index:9999;
-      background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
-      display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;
-    }
-    #intro.hide{ opacity:0; pointer-events:none; }
-    .intro-center{ text-align:center; padding:24px; }
-    .intro-logo{
-      font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
-      background:linear-gradient(135deg,#8dd0ff,#9b72ff);
-      -webkit-background-clip:text; background-clip:text; color:transparent;
-      filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
-    }
-    .intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
+    /* Intro */
+    #intro{position:fixed; inset:0; z-index:9999; background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
+      display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;}
+    #intro.hide{opacity:0; pointer-events:none;}
+    .intro-center{text-align:center; padding:24px;}
+    .intro-logo{font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
+      background:linear-gradient(135deg,#8dd0ff,#9b72ff); -webkit-background-clip:text; background-clip:text; color:transparent;}
+    .intro-sub{ color:#c9d6e2; margin:6px 0 16px; }
     .intro-heart{ font-size:22px; color:#ff4d4d; font-weight:800; margin-bottom:14px; }
-    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px;}
+    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px;}
   </style>
 </head>
 <body>
 
-  <!-- Intro -->
+  <!-- Intro (menu) -->
   <div id="intro" aria-hidden="true">
     <div class="intro-center">
       <div class="intro-logo">974DR</div>
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
       <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
-      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+      <button id="introDivBtn"  class="intro-btn" type="button">Table de division</button>
     </div>
   </div>
 
@@ -118,7 +103,7 @@
 
   <script>
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
-    let currentMode="mult"; // 'mult' ou 'div'
+    let currentMode="mult";
 
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
@@ -169,25 +154,22 @@
       document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
     }
 
-    // 🔙 Retour au menu
     function backToMenu(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
       document.getElementById('intro').classList.remove('hide');
-      homeBtn.classList.add('hidden');       // cache 🏠 au menu
+      homeBtn.classList.add('hidden');
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
-    // Boutons “jeu”
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
     document.getElementById('backBtn').onclick=backToMenu;
     document.getElementById('backFromResult').onclick=backToMenu;
-    homeBtn.onclick=backToMenu;              // 🏠
+    homeBtn.onclick=backToMenu;
 
-    // Intro : choix du mode → on quitte l’overlay + on montre 🏠
     (function () {
       const intro   = document.getElementById('intro');
       const multBtn = document.getElementById('introMultBtn');
@@ -201,11 +183,19 @@
       divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
     })();
   </script>
+
+  <!-- Nettoyage des anciens SW + enregistrement du nouveau, scope limité au dossier -->
   <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js?v=16')
-      .then(reg => reg.update())
-      .catch(()=>{});
+    navigator.serviceWorker.getRegistrations().then(regs => {
+      regs.forEach(reg => {
+        // On ne garde que le SW dont la scope se termine par /calcul-mental/
+        if (!reg.scope.endsWith('/calcul-mental/')) reg.unregister();
+      });
+    }).finally(() => {
+      navigator.serviceWorker.register('./sw.js?v=17', { scope: './' })
+        .then(r => r.update()).catch(()=>{});
+    });
   }
   </script>
 </body>
