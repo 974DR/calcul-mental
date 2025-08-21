@@ -1,7 +1,7 @@
-// sw.js (v19) — PWA calcul-mental
+// sw.js (v22) — PWA calcul-mental
 // Stratégie : HTML en network-first, le reste en cache-first
 
-const CACHE = 'cm-v19';
+const CACHE = 'cm-v22';
 const ASSETS = [
   './',                    // racine du site
   './index.html',
