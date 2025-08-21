@@ -4,8 +4,9 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
-<link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#0e0f12">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0e0f12">
+
   <style>
     :root{ --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd; --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1); }
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
@@ -48,7 +49,7 @@
     #intro{
       position:fixed; inset:0; z-index:9999;
       background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
-      display:grid; place-items:center; opacity:1; transition:opacity .6s ease; pointer-events:auto;
+      display:grid; place-items:center; opacity:1; transition:opacity .4s ease; pointer-events:auto;
     }
     #intro.hide{ opacity:0; pointer-events:none; }
     .intro-center{ text-align:center; padding:24px; }
@@ -66,18 +67,25 @@
 <body>
 
   <!-- Intro -->
-<div id="intro" aria-hidden="true">
-  <div class="intro-center">
-    <div class="intro-logo">974DR</div>
-    <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
-    <div class="intro-heart">❤️ Vive les maths ❤️</div>
+  <div id="intro">
+    <div class="intro-center">
+      <div class="intro-logo">974DR</div>
+      <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
+      <div class="intro-heart">❤️ Vive les maths ❤️</div>
 
-    <!-- ⤵️ Nouveau bouton d’intro (id différent du bouton du jeu) -->
-    <button id="introStartBtn" class="intro-btn" type="button">
-      Table de multiplication
-    </button>
+      <!-- ✅ Bouton qui ferme l’intro ET démarre le jeu (inline = ultra-fiable) -->
+      <button
+        id="introStartBtn"
+        class="intro-btn"
+        type="button"
+        onclick="(function(){
+          try{ localStorage.setItem('cm_intro_seen_v1','1'); }catch(e){}
+          var el=document.getElementById('intro'); if(el) el.classList.add('hide');
+          setTimeout(function(){ if(window.start) start(); }, 10);
+        })();"
+      >Table de multiplication</button>
+    </div>
   </div>
-</div>
 
   <div class="wrap">
     <header>
@@ -103,8 +111,8 @@
         </div>
         <div>
           <div id="play" class="card" style="display:none">
-            <div class="question"><span id="qa"></span> × <span id="qb"></span> = ?</div>
-            <div class="input-line"><input id="answer" type="number"><button id="okBtn">Valider</button></div>
+            <div class="question"><span id="qa"></span> <span class="op">×</span> <span id="qb"></span> <span class="op">=</span> ?</div>
+            <div class="input-line"><input id="answer" type="number" inputmode="numeric"><button id="okBtn">Valider</button></div>
             <div id="feedback" class="feedback"></div>
             <div class="status">
               <div class="pill">Q <span id="count">0</span></div>
@@ -122,12 +130,10 @@
     </section>
   </div>
 
-  <!-- Feu d'artifice : canevas + son -->
+  <!-- Effets audio feux d’artifice -->
   <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
 
   <script>
-    function closeIntro(){ document.getElementById('intro').classList.add('hide'); }
-
     // ============ Jeu ============
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
     const qaEl=document.getElementById('qa'),
@@ -141,14 +147,14 @@
       qa=Math.floor(Math.random()*10)+2;
       qb=Math.floor(Math.random()*11);
       qaEl.textContent=qa; qbEl.textContent=qb;
-      document.getElementById('answer').value='';
-      document.getElementById('answer').focus();
+      const ans=document.getElementById('answer');
+      ans.value=''; ans.focus();
     }
 
     function check(){
-      const ans=parseInt(document.getElementById('answer').value);
+      const ans=parseInt(document.getElementById('answer').value,10);
       if(ans===qa*qb){ good++; feedback.textContent='✔️'; feedback.className='feedback ok'; }
-      else { bad++; feedback.textContent=`✖️ (${qa*qb})`; feedback.className='feedback bad'; }
+      else { bad++; feedback.textContent='✖️ ('+(qa*qb)+')'; feedback.className='feedback bad'; }
       qCount++; updateUI();
       if(qCount<numQ) newQ(); else end();
     }
@@ -156,8 +162,11 @@
     function updateUI(){ countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad; }
 
     function start(){
-      qCount=0; good=0; bad=0; updateUI(); document.getElementById('play').style.display='block';
-      document.getElementById('result').style.display='none'; newQ();
+      const n=document.getElementById('numQ'); numQ=Math.max(1, parseInt(n.value,10)||10);
+      qCount=0; good=0; bad=0; updateUI();
+      document.getElementById('play').style.display='block';
+      document.getElementById('result').style.display='none';
+      newQ();
     }
 
     function end(){
@@ -171,73 +180,65 @@
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
 
-    // ============ Fireworks intégré ============
+    // ============ Fireworks minimal ============
     (function () {
       function createCanvas() {
         let canvas=document.getElementById('fireworks-overlay');
         if(!canvas){
-          canvas=document.createElement('canvas'); canvas.id='fireworks-overlay';
-          canvas.style.position='fixed'; canvas.style.inset='0'; canvas.style.zIndex='10000'; canvas.style.pointerEvents='none';
+          canvas=document.createElement('canvas');
+          canvas.id='fireworks-overlay';
+          canvas.style.position='fixed'; canvas.style.inset='0';
+          canvas.style.zIndex='10000'; canvas.style.pointerEvents='none';
           document.body.appendChild(canvas);
         }
         const ctx=canvas.getContext('2d');
-        canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+        canvas.width=innerWidth; canvas.height=innerHeight;
         return {canvas,ctx};
       }
       class Particle {
-        constructor(x,y,color,angle,speed){this.x=x;this.y=y;this.vx=Math.cos(angle)*speed;this.vy=Math.sin(angle)*speed;this.life=1;this.decay=Math.random()*0.015+0.012;this.color=color;this.size=Math.random()*2+1.5;}
+        constructor(x,y,color,a,s){this.x=x;this.y=y;this.vx=Math.cos(a)*s;this.vy=Math.sin(a)*s;this.life=1;this.decay=Math.random()*0.015+0.012;this.color=color;this.size=Math.random()*2+1.5;}
         update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.05;this.vx*=0.99;this.vy*=0.99;this.life-=this.decay;return this.life>0;}
         draw(ctx){ctx.globalAlpha=Math.max(this.life,0);ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle=this.color;ctx.fill();}
       }
-      function explode(particles,cx,cy){
+      function explode(list,cx,cy){
         const palette=['#ff5252','#ffd166','#6ee7b7','#60a5fa','#a78bfa','#f472b6'];
         const color=palette[(Math.random()*palette.length)|0];
-        const count=90;
-        for(let i=0;i<count;i++){const angle=Math.random()*Math.PI*2;const speed=(Math.random()*4+2);particles.push(new Particle(cx,cy,color,angle,speed));}
-        const a=document.getElementById('fw-sound'); if(a){a.currentTime=0;a.play().catch(()=>{});}
+        for(let i=0;i<90;i++){const a=Math.random()*Math.PI*2;const s=Math.random()*4+2;list.push(new Particle(cx,cy,color,a,s));}
+        const a=document.getElementById('fw-sound'); a && (a.currentTime=0, a.play().catch(()=>{}));
       }
       window.showFireworks=function(duration=4000){
-        const {canvas,ctx}=createCanvas(); const particles=[]; const endAt=performance.now()+duration;
+        const {canvas,ctx}=createCanvas(); const list=[]; const endAt=performance.now()+duration;
         const jitter=()=>({x:canvas.width/2+(Math.random()-0.5)*100,y:canvas.height/2+(Math.random()-0.5)*100});
-        explode(particles,canvas.width/2,canvas.height/2);
+        explode(list,canvas.width/2,canvas.height/2);
         function frame(now){
-          ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.18;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=0.18; ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
           ctx.globalCompositeOperation='lighter';
-          for(let i=particles.length-1;i>=0;i--){const p=particles[i];if(!p.update()){particles.splice(i,1);continue;}p.draw(ctx);}
-          if(now<endAt){if(Math.random()<0.08){const c=jitter();explode(particles,c.x,c.y);}requestAnimationFrame(frame);}else if(particles.length){requestAnimationFrame(frame);}else{canvas.remove();}
+          for(let i=list.length-1;i>=0;i--){const p=list[i]; if(!p.update()){list.splice(i,1);continue;} p.draw(ctx);}
+          if(now<endAt){ if(Math.random()<0.08){const c=jitter(); explode(list,c.x,c.y);} requestAnimationFrame(frame); }
+          else if(list.length){ requestAnimationFrame(frame); }
+          else { canvas.remove(); }
         }
         requestAnimationFrame(frame);
       }
     })();
   </script>
 
+  <!-- Service Worker : on nettoie les anciens puis on enregistre le nouveau -->
   <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js?v=12').then(r => r.update()).catch(()=>{});
-}
-</script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(rs => Promise.all(rs.map(r => r.unregister())))
+        .finally(() => {
+          navigator.serviceWorker.register('sw.js?v=13').catch(()=>{});
+        });
+    }
+  </script>
+
+  <!-- Masquer l’intro si déjà vue -->
   <script>
-(function () {
-  const SEEN_KEY = 'cm_intro_seen_v1';
-  const intro     = document.getElementById('intro');
-  const introBtn  = document.getElementById('introStartBtn');
-
-  // si déjà vu, on masque l’intro
-  if (localStorage.getItem(SEEN_KEY)) {
-    intro?.classList.add('hide');
-    return;
-  }
-
-  // au clic : on ferme l’intro et on met le focus sur le bouton du jeu
-  introBtn?.addEventListener('click', () => {
-    try { localStorage.setItem(SEEN_KEY, '1'); } catch(e) {}
-    intro?.classList.add('hide');
-    const gameStart = document.getElementById('startBtn');
-    if (gameStart) setTimeout(() => gameStart.focus({preventScroll:true}), 150);
-    // (optionnel) lancer un petit son d’intro si tu veux
-    // const a = document.getElementById('introAudio'); a?.play?.().catch(()=>{});
-  });
-})();
-</script>
+    (function(){
+      try{ if(localStorage.getItem('cm_intro_seen_v1')) document.getElementById('intro').classList.add('hide'); }catch(e){}
+    })();
+  </script>
 </body>
 </html>
