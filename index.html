@@ -216,5 +216,28 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js?v=12').then(r => r.update()).catch(()=>{});
 }
 </script>
+  <script>
+(function () {
+  const SEEN_KEY = 'cm_intro_seen_v1';
+  const intro     = document.getElementById('intro');
+  const introBtn  = document.getElementById('introStartBtn');
+
+  // si déjà vu, on masque l’intro
+  if (localStorage.getItem(SEEN_KEY)) {
+    intro?.classList.add('hide');
+    return;
+  }
+
+  // au clic : on ferme l’intro et on met le focus sur le bouton du jeu
+  introBtn?.addEventListener('click', () => {
+    try { localStorage.setItem(SEEN_KEY, '1'); } catch(e) {}
+    intro?.classList.add('hide');
+    const gameStart = document.getElementById('startBtn');
+    if (gameStart) setTimeout(() => gameStart.focus({preventScroll:true}), 150);
+    // (optionnel) lancer un petit son d’intro si tu veux
+    // const a = document.getElementById('introAudio'); a?.play?.().catch(()=>{});
+  });
+})();
+</script>
 </body>
 </html>
