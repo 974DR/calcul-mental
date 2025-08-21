@@ -53,8 +53,7 @@
     }
   }
 
-  function rand(min, max) { return Math.random() * (max - min) + min; }
-
+  function rand(min, max) { return Math.random() * (max - min) + window.__playFireworkSound && window.__playFireworkSound();
   function explode(particles, cx, cy) {
     const palette = ['#ff5252', '#ffd166', '#6ee7b7', '#60a5fa', '#a78bfa', '#f472b6'];
     const color = palette[(Math.random() * palette.length) | 0];
