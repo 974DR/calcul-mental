@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#0e0f12">
 
   <style>
-    /* Ligne "Vive les maths" — pop + battement */
+/* Ligne "Vive les maths" — pop + battement */
 .intro-heart{
   font-size: clamp(18px, 4vw, 26px);
   color:#ff4d4d;
@@ -70,7 +70,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
 .result{display:none} .result.active{display:block}
 .muted{color:var(--muted)}
 
- /* ===== Intro plein-écran ===== */
+/* ===== Intro plein-écran ===== */
 #intro{
   position:fixed; inset:0; z-index:9999;
   background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
@@ -112,7 +112,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
       <!-- ✅ Bouton Play -->
-      <button id="playIntroBtn" class="intro-btn">▶️ Commencer</button>
+      <button id="playIntroBtn" class="intro-btn" type="button">▶️ Commencer</button>
     </div>
   </div>
 
@@ -134,11 +134,8 @@ button:disabled{opacity:.6;cursor:not-allowed}
     <!-- Son d'intro -->
     <audio id="introAudio" src="mixkit-angelic-swell-presentation-2672.wav" preload="auto"></audio>
 
-    <!-- 🔁 (On enlève l'ancien script d'autoplay bloqué) -->
-
     <section class="card">
-      <!-- ... tout le reste de ta page (réglages/jeu/résultats) inchangé ... -->
-      <!-- (je n’ai rien modifié ici pour rester concis) -->
+      <!-- … le reste de la page (réglages/jeu/résultats) … -->
     </section>
   </div>
 
@@ -147,14 +144,14 @@ button:disabled{opacity:.6;cursor:not-allowed}
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw-v9.js?v=1').catch(()=>{});
     }
-    // ... tout ton JS existant pour le jeu, inchangé ...
+    // ton JS principal du jeu reste inchangé
   </script>
 
   <!-- Confetti + Fireworks -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
-  <!-- ✅ Intro avec Play (remplace l’auto-close) -->
+  <!-- ✅ Intro avec Play -->
   <script>
   document.addEventListener('DOMContentLoaded', function () {
     const intro = document.getElementById('intro');
@@ -206,6 +203,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
       try {
         a.currentTime = 0;
         a.play().catch(()=>{});
+        // coupe chaque “boom” après 700 ms
         setTimeout(() => { if (!a.paused) { a.pause(); a.currentTime = 0; } }, 700);
       } catch(e) {}
     }
@@ -213,19 +211,26 @@ button:disabled{opacity:.6;cursor:not-allowed}
       pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
     }
 
+    // Helper : l’intro est-elle visible ?
+    function introVisible(){
+      const el = document.getElementById('intro');
+      return el && !el.classList.contains('hide');
+    }
+
+    // Débloque l'audio au 1er geste utilisateur… sauf si l’intro est visible
+    const unlockOnce = () => {
+      if (introVisible()) return; // on ignore les clics sur l’intro
+      pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
+      document.removeEventListener('click', unlockOnce);
+      document.removeEventListener('touchstart', unlockOnce);
+      document.removeEventListener('keydown', unlockOnce);
+    };
+    document.addEventListener('click', unlockOnce);
+    document.addEventListener('touchstart', unlockOnce);
+    document.addEventListener('keydown', unlockOnce);
+
     window.__playFireworkSound = playFireworkOnce;
     window.__stopFireworksSound = stopAllFireworksSounds;
-
-    // Débloque l'audio au 1er geste
-    const unlock = () => {
-      pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
-      document.removeEventListener('click', unlock);
-      document.removeEventListener('touchstart', unlock);
-      document.removeEventListener('keydown', unlock);
-    };
-    document.addEventListener('click', unlock);
-    document.addEventListener('touchstart', unlock);
-    document.addEventListener('keydown', unlock);
   })();
   </script>
 </body>
