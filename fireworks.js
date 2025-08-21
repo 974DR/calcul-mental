@@ -10,7 +10,7 @@
       canvas.id = 'fireworks-overlay';
       canvas.style.position = 'fixed';
       canvas.style.inset = '0';
-      canvas.style.zIndex = '9999';
+      canvas.style.zIndex = '10000'; // au-dessus de tout
       canvas.style.pointerEvents = 'none';
       document.body.appendChild(canvas);
     }
@@ -53,12 +53,17 @@
     }
   }
 
-  function rand(min, max) { return Math.random() * (max - min) + window.__playFireworkSound && window.__playFireworkSound();
+  function rand(min, max) {
+    return Math.random() * (max - min) + min; // ✅ fonction math pure (pas de son ici)
+  }
+
+  // ⬇️ C'EST ICI qu'on déclenche le son, au tout début de l'explosion
   function explode(particles, cx, cy) {
+    if (window.__playFireworkSound) window.__playFireworkSound(); // 🔊 joue 1 fois par explosion
+
     const palette = ['#ff5252', '#ffd166', '#6ee7b7', '#60a5fa', '#a78bfa', '#f472b6'];
     const color = palette[(Math.random() * palette.length) | 0];
 
-    // 1 explosion principale + quelques étincelles plus rapides
     const count = 90;
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
@@ -75,7 +80,6 @@
     const particles = [];
     const endAt = performance.now() + duration;
 
-    // Pour un centre "vivant" (légère variation autour du centre)
     const jitter = () => ({
       x: canvas.width / 2 + rand(-canvas.width * 0.05, canvas.width * 0.05),
       y: canvas.height / 2 + rand(-canvas.height * 0.05, canvas.height * 0.05)
@@ -106,14 +110,12 @@
       if (now < endAt) {
         if (Math.random() < 0.08) {
           const c = jitter();
-          explode(particles, c.x, c.y);
+          explode(particles, c.x, c.y); // 🔊 son joué ici à chaque nouvelle explosion
         }
         requestAnimationFrame(frame);
       } else if (particles.length) {
-        // Laisser finir les particules restantes
         requestAnimationFrame(frame);
       } else {
-        // Nettoyer
         cleanup();
         canvas.remove();
       }
