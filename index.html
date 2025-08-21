@@ -6,6 +6,7 @@
   <title>974DR — Calcul mental</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f12">
+
   <style>
     :root{ --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd; --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1); }
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
@@ -15,15 +16,13 @@
     header .logo span{font-weight:800;color:white;font-size:20px}
     h1{margin:0;font-size:clamp(22px,4vw,34px)}
     .sub{color:var(--muted);font-size:14px}
-    .banner{background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;font-weight:bold;
-      padding:8px 14px;border-radius:10px;margin-bottom:16px;text-align:center}
+    .banner{background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;font-weight:bold;padding:8px 14px;border-radius:10px;margin-bottom:16px;text-align:center}
     .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
     @media (max-width:850px){.grid{grid-template-columns:1fr}}
     .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
     input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);width:90px}
-    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
     button.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
     .question{font-size:clamp(28px,6vw,56px);font-weight:800;text-align:center;margin:10px 0 6px}
     .question .op{color:var(--accent)}
@@ -36,6 +35,8 @@
     .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
+
+    /* ===== Intro ===== */
     #intro{
       position:fixed; inset:0; z-index:9999;
       background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
@@ -50,21 +51,20 @@
     }
     .intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
     .intro-heart{ font-size:22px; color:#ff4d4d; font-weight:800; margin-bottom:14px; }
-    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px;}
+    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px;}
+    .intro-btn + .intro-btn{ margin-top:10px; } /* espace entre les 2 boutons */
   </style>
 </head>
 <body>
 
-  <!-- Intro -->
+  <!-- Intro avec 2 boutons -->
   <div id="intro" aria-hidden="true">
     <div class="intro-center">
       <div class="intro-logo">974DR</div>
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
-      <!-- Boutons -->
-      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
-      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button>
+      <button id="introDivBtn"  class="intro-btn" type="button">Table de division</button>
     </div>
   </div>
 
@@ -87,13 +87,17 @@
       <div class="grid">
         <div>
           <div class="chip"><input type="radio" name="mode" value="train" checked> Entraînement</div>
-          <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10"></label></div>
+          <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10" min="1" max="100"></label></div>
           <button id="startBtn">Démarrer</button>
         </div>
+
         <div>
           <div id="play" class="card" style="display:none">
             <div class="question"><span id="qa"></span> <span id="op"></span> <span id="qb"></span> = ?</div>
-            <div class="input-line"><input id="answer" type="number"><button id="okBtn">Valider</button></div>
+            <div class="input-line">
+              <input id="answer" type="number" inputmode="numeric" placeholder="Ta réponse">
+              <button id="okBtn">Valider</button>
+            </div>
             <div id="feedback" class="feedback"></div>
             <div class="status">
               <div class="pill">Q <span id="count">0</span></div>
@@ -101,6 +105,7 @@
               <div class="pill bad">✖︎ <span id="bad">0</span></div>
             </div>
           </div>
+
           <div id="result" class="result card">
             <h3>Résumé</h3>
             <p>Score : <strong><span id="scorePct">0</span>%</strong></p>
@@ -112,34 +117,42 @@
   </div>
 
   <script>
+    // ------- Service worker (bump version pour casser l'ancien cache) -------
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js?v=13').then(r => r.update()).catch(()=>{});
+    }
+
+    // ------- Logique du jeu -------
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
-    let currentMode="mult"; // mode actif
+    let currentMode="mult";
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
           opEl=document.getElementById('op'),
           countEl=document.getElementById('count'),
           goodEl=document.getElementById('good'),
           badEl=document.getElementById('bad'),
-          feedback=document.getElementById('feedback');
+          feedback=document.getElementById('feedback'),
+          answerEl=document.getElementById('answer');
 
     function newQ(){
       if(currentMode==="mult"){
-        qa=Math.floor(Math.random()*10)+2;
-        qb=Math.floor(Math.random()*11);
+        qa=Math.floor(Math.random()*10)+2;          // 2..11
+        qb=Math.floor(Math.random()*11);            // 0..10/11
         opEl.textContent="×";
-      } else {
-        qb=Math.floor(Math.random()*10)+2; // diviseur
-        qa=qb*(Math.floor(Math.random()*10)+2); // multiple
+      }else{
+        qb=Math.floor(Math.random()*10)+2;          // diviseur 2..11
+        qa=qb*(Math.floor(Math.random()*10)+2);     // multiple pour résultat entier
         opEl.textContent="÷";
       }
       qaEl.textContent=qa; qbEl.textContent=qb;
-      document.getElementById('answer').value='';
-      document.getElementById('answer').focus();
+      answerEl.value=''; answerEl.focus();
     }
 
     function check(){
-      const ans=parseInt(document.getElementById('answer').value);
-      let correct=(currentMode==="mult")?(qa*qb):(qa/qb);
+      const val = answerEl.value.trim();
+      if (val === "") return; // éviter NaN si vide
+      const ans = Number(val);
+      const correct = (currentMode==="mult") ? (qa*qb) : (qa/qb);
       if(ans===correct){ good++; feedback.textContent='✔️'; feedback.className='feedback ok'; }
       else { bad++; feedback.textContent=`✖️ (${correct})`; feedback.className='feedback bad'; }
       qCount++; updateUI();
@@ -149,6 +162,7 @@
     function updateUI(){ countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad; }
 
     function start(){
+      numQ = Math.max(1, Math.min(100, Number(document.getElementById('numQ').value)||10));
       qCount=0; good=0; bad=0; updateUI();
       document.getElementById('play').style.display='block';
       document.getElementById('result').style.display='none';
@@ -158,23 +172,24 @@
     function end(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='block';
-      document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
+      document.getElementById('scorePct').textContent=Math.round(100*good/Math.max(1,qCount));
     }
 
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
+    answerEl.addEventListener('keydown', e => { if(e.key==='Enter'){ e.preventDefault(); check(); } });
 
-    // Intro : choix du mode
+    // ------- Intro : choix du mode -------
     (function () {
-      const intro=document.getElementById('intro');
-      const multBtn=document.getElementById('introMultBtn');
-      const divBtn=document.getElementById('introDivBtn');
+      const intro   = document.getElementById('intro');
+      const multBtn = document.getElementById('introMultBtn');
+      const divBtn  = document.getElementById('introDivBtn');
 
       function closeIntro(){ intro.classList.add('hide'); }
 
       multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
-      divBtn.addEventListener('click', ()=>{ currentMode="div"; closeIntro(); });
+      divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro();  });
     })();
   </script>
 </body>
