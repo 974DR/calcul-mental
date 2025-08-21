@@ -144,7 +144,41 @@
   💚 Vive Sécheron ! 💚 <br>
   ❤️ Vive les maths ❤️
 </div>
+<!-- Son d'intro -->
+<audio
+  id="introAudio"
+  src="mixkit-angelic-swell-presentation-2672.wav"
+  preload="auto"
+></audio>
 
+<script>
+// Essaie de lancer le son au chargement
+window.addEventListener('load', () => {
+  const audio = document.getElementById('introAudio');
+
+  // iOS/Safari bloquent souvent l'autoplay non muet : on tente, sinon on attend le 1er geste
+  audio.play().catch(() => {
+    // 1) démarrer au premier TAP/CLIC n'importe où
+    const unlock = () => {
+      audio.play().catch(()=>{});     // on ignore les rejets
+      document.removeEventListener('click', unlock);
+      document.removeEventListener('touchstart', unlock);
+      document.removeEventListener('keydown', unlock);
+    };
+    document.addEventListener('click', unlock, { once: true });
+    document.addEventListener('touchstart', unlock, { once: true });
+    document.addEventListener('keydown', unlock, { once: true });
+  });
+});
+
+// Petit plus : si l’onglet redevient visible très vite après le chargement, on rejoue si rien n’a sonné
+document.addEventListener('visibilitychange', () => {
+  const audio = document.getElementById('introAudio');
+  if (!document.hidden && audio.paused) {
+    audio.play().catch(()=>{ /* on attendra un clic */ });
+  }
+});
+</script>
     <section class="card">
       <div class="grid">
         <!-- Réglages -->
