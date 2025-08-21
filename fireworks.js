@@ -54,12 +54,12 @@
   }
 
   function rand(min, max) {
-    return Math.random() * (max - min) + min; // ✅ fonction math pure (pas de son ici)
+    return Math.random() * (max - min) + min; // fonction math pure
   }
 
-  // ⬇️ C'EST ICI qu'on déclenche le son, au tout début de l'explosion
+  // Déclenche le son au tout début d'une explosion
   function explode(particles, cx, cy) {
-    if (window.__playFireworkSound) window.__playFireworkSound(); // 🔊 joue 1 fois par explosion
+    if (window.__playFireworkSound) window.__playFireworkSound(); // 🔊
 
     const palette = ['#ff5252', '#ffd166', '#6ee7b7', '#60a5fa', '#a78bfa', '#f472b6'];
     const color = palette[(Math.random() * palette.length) | 0];
@@ -79,6 +79,7 @@
     const { canvas, ctx, cleanup } = createCanvas();
     const particles = [];
     const endAt = performance.now() + duration;
+    let soundStopped = false;
 
     const jitter = () => ({
       x: canvas.width / 2 + rand(-canvas.width * 0.05, canvas.width * 0.05),
@@ -106,20 +107,31 @@
         p.draw(ctx);
       }
 
-      // Tant que la durée n'est pas écoulée, déclencher des explosions régulières au centre
+      // Si la durée est dépassée, on coupe tout de suite le son (une seule fois),
+      // puis on laisse les particules "mourir".
+      if (now >= endAt && !soundStopped) {
+        if (window.__stopFireworksSound) window.__stopFireworksSound();
+        soundStopped = true;
+      }
+
       if (now < endAt) {
+        // explosions régulières tant que la durée n'est pas écoulée
         if (Math.random() < 0.08) {
           const c = jitter();
           explode(particles, c.x, c.y); // 🔊 son joué ici à chaque nouvelle explosion
         }
         requestAnimationFrame(frame);
       } else if (particles.length) {
+        // plus de nouvelles explosions, on termine l'animation
         requestAnimationFrame(frame);
       } else {
+        // tout est fini : coupe le son (sécurité) et nettoie
+        if (window.__stopFireworksSound) window.__stopFireworksSound();
         cleanup();
         canvas.remove();
       }
     }
+
     requestAnimationFrame(frame);
   };
 })();
