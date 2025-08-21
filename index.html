@@ -182,24 +182,57 @@
   <source src="fireworks.mp3" type="audio/mpeg">
 </audio>
 
-  <!-- Déverrouillage audio iOS + pont pour fireworks.js -->
+    <!-- Déverrouillage audio iOS + pont pour fireworks.js (version silencieuse) -->
   <script>
     (function () {
       const a = document.getElementById('fwSound');
       let unlocked = false;
+
+      // toujours muet au départ
+      a.muted = true;
+      a.volume = 1;
+
       function unlockOnce() {
         if (unlocked) return;
+        unlocked = true;
+
+        // prime l’audio en muet
         const p = a.play();
         if (p && p.then) {
-          p.then(() => { a.pause(); a.currentTime = 0; unlocked = true; })
+          p.then(() => { a.pause(); a.currentTime = 0; })
            .catch(()=>{});
-        } else { a.pause(); a.currentTime=0; unlocked=true; }
+        } else {
+          a.pause(); a.currentTime = 0;
+        }
       }
-      ['introMultBtn','introDivBtn','introVidBtn','startBtn','okBtn','againBtn','backBtn','backFromResult']
-        .forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('click', unlockOnce, {once:true}); });
 
-      window.__startFireworksSound = () => { if (!unlocked) return; try { a.loop = true; a.currentTime = 0; a.play(); } catch {} };
-      window.__stopFireworksSound  = () => { try { a.loop = false; a.pause(); a.currentTime = 0; } catch {} };
+      // on lie unlockOnce au premier clic utilisateur
+      ['introMultBtn','introDivBtn','introVidBtn','startBtn','okBtn','againBtn','backBtn','backFromResult']
+        .forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('click', unlockOnce, { once: true });
+        });
+
+      // lancement du son (désormais démuté)
+      window.__startFireworksSound = () => {
+        if (!unlocked) return;
+        try {
+          a.muted = false;
+          a.loop = true;
+          a.currentTime = 0;
+          a.play();
+        } catch {}
+      };
+
+      // arrêt + remise en muet
+      window.__stopFireworksSound = () => {
+        try {
+          a.loop = false;
+          a.pause();
+          a.currentTime = 0;
+          a.muted = true;
+        } catch {}
+      };
     })();
   </script>
 
