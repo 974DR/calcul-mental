@@ -211,5 +211,13 @@
       divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
     })();
   </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    // on change l’URL (v=14) pour forcer le navigateur à recharger le nouveau SW
+    navigator.serviceWorker.register('sw.js?v=14')
+      .then(reg => reg.update())
+      .catch(()=>{});
+  }
+</script>
 </body>
 </html>
