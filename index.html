@@ -4,16 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
-  <link rel="apple-touch-icon" href="icon-192.png">
-  <link rel="manifest" href="manifest.webmanifest">
-  <meta name="theme-color" content="#0e0f12">
 
   <style>
     :root{ --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd; --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1); }
-    *{box-sizing:border-box}
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
 
-    .wrap{max-width:720px;margin:28px auto;padding:0 16px}
+    .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     header .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#4aa7ff,#9b72ff);display:grid;place-items:center}
     header .logo span{font-weight:800;color:white;font-size:20px}
@@ -23,15 +19,29 @@
     .banner{background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;font-weight:bold;
       padding:8px 14px;border-radius:10px;margin-bottom:16px;text-align:center}
 
-    .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
-    .question{font-size:clamp(28px,6vw,56px);font-weight:800;margin:20px 0 12px}
+    .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+    @media (max-width:850px){.grid{grid-template-columns:1fr}}
+
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
+    .tables{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:6px}
+
+    input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);width:90px}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
+    button.secondary{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+    .question{font-size:clamp(28px,6vw,56px);font-weight:800;text-align:center;margin:10px 0 6px}
     .question .op{color:var(--accent)}
-    .input-line{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
-    .input-line input{font-size:22px;text-align:center;width:160px;padding:8px}
-    .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:10px}
-    .feedback.ok{color:var(--ok)} 
-    .feedback.bad{color:var(--bad)}
-    .score{margin-top:10px;color:var(--muted)}
+    .input-line{display:flex;gap:10px;justify-content:center;align-items:center}
+    .input-line input{font-size:22px;text-align:center;width:180px}
+    .status{display:flex;gap:10px;justify-content:space-between;border-top:1px dashed var(--border);padding-top:10px;margin-top:10px;color:var(--muted)}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#0f1218}
+    .pill.ok{border-color:rgba(52,211,153,.4);color:#d1fae5}
+    .pill.bad{border-color:rgba(248,113,113,.4);color:#fee2e2}
+    .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
+    .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
+    .result{display:none} .result.active{display:block}
 
     /* ===== Intro plein-écran ===== */
     #intro{
@@ -45,14 +55,11 @@
       font-weight:900; letter-spacing:2px; font-size:clamp(36px, 12vw, 96px);
       background:linear-gradient(135deg,#8dd0ff,#9b72ff);
       -webkit-background-clip:text; background-clip:text; color:transparent;
-      filter: drop-shadow(0 10px 30px rgba(0,0,0,.5));
     }
     .intro-sub{ color:#c9d6e2; margin:6px 0 16px; font-size:clamp(14px,3.5vw,18px); opacity:.9 }
-    .intro-heart{font-size:20px; color:#ff4d4d; font-weight:800; margin-bottom:20px;}
-    .intro-btn{
-      appearance:none; border:none; border-radius:14px; padding:12px 18px; font-weight:800; cursor:pointer;
-      background:linear-gradient(135deg,#4aa7ff,#8dd0ff); color:#03111f; margin-top:20px;
-    }
+    .intro-heart{ font-size:22px; color:#ff4d4d; font-weight:800; margin-bottom:14px; }
+    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px;}
   </style>
 </head>
 <body>
@@ -62,11 +69,10 @@
       <div class="intro-logo">974DR</div>
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
-      <button class="intro-btn" onclick="startApp()">▶️ Commencer</button>
+      <button class="intro-btn" onclick="closeIntro()">▶️ Commencer</button>
     </div>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="wrap">
     <header>
       <div class="logo"><span>×</span></div>
@@ -83,49 +89,120 @@
     </div>
 
     <section class="card">
-      <div id="question" class="question"></div>
-      <div class="input-line">
-        <input id="answer" type="number" placeholder="Ta réponse" />
-        <button onclick="checkAnswer()">Valider</button>
+      <div class="grid">
+        <div>
+          <div class="chip"><input type="radio" name="mode" value="train" checked> Entraînement</div>
+          <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10"></label></div>
+          <button id="startBtn">Démarrer</button>
+        </div>
+        <div>
+          <div id="play" class="card" style="display:none">
+            <div class="question"><span id="qa"></span> × <span id="qb"></span> = ?</div>
+            <div class="input-line"><input id="answer" type="number"><button id="okBtn">Valider</button></div>
+            <div id="feedback" class="feedback"></div>
+            <div class="status">
+              <div class="pill">Q <span id="count">0</span></div>
+              <div class="pill ok">✔︎ <span id="good">0</span></div>
+              <div class="pill bad">✖︎ <span id="bad">0</span></div>
+            </div>
+          </div>
+          <div id="result" class="result card">
+            <h3>Résumé</h3>
+            <p>Score : <strong><span id="scorePct">0</span>%</strong></p>
+            <button id="againBtn">Refaire</button>
+          </div>
+        </div>
       </div>
-      <div id="feedback" class="feedback"></div>
-      <div id="score" class="score">Score : 0</div>
     </section>
   </div>
 
-  <!-- Confetti -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <!-- Feu d'artifice : canevas + son -->
+  <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
 
   <script>
-    let currentA=0, currentB=0, score=0;
+    function closeIntro(){ document.getElementById('intro').classList.add('hide'); }
 
-    function newQuestion(){
-      currentA = Math.floor(Math.random()*10)+1;
-      currentB = Math.floor(Math.random()*10)+1;
-      document.getElementById("question").innerHTML = `${currentA} <span class="op">×</span> ${currentB} = ?`;
-      document.getElementById("answer").value="";
-      document.getElementById("feedback").innerText="";
+    // ============ Jeu ============
+    let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
+    const qaEl=document.getElementById('qa'),
+          qbEl=document.getElementById('qb'),
+          countEl=document.getElementById('count'),
+          goodEl=document.getElementById('good'),
+          badEl=document.getElementById('bad'),
+          feedback=document.getElementById('feedback');
+
+    function newQ(){
+      qa=Math.floor(Math.random()*10)+2;
+      qb=Math.floor(Math.random()*11);
+      qaEl.textContent=qa; qbEl.textContent=qb;
+      document.getElementById('answer').value='';
+      document.getElementById('answer').focus();
     }
 
-    function checkAnswer(){
-      const val = parseInt(document.getElementById("answer").value,10);
-      if(val === currentA*currentB){
-        score++;
-        document.getElementById("feedback").innerText="✅ Bravo !";
-        document.getElementById("feedback").className="feedback ok";
-        confetti();
-      } else {
-        document.getElementById("feedback").innerText=`❌ Mauvaise réponse`;
-        document.getElementById("feedback").className="feedback bad";
+    function check(){
+      const ans=parseInt(document.getElementById('answer').value);
+      if(ans===qa*qb){ good++; feedback.textContent='✔️'; feedback.className='feedback ok'; }
+      else { bad++; feedback.textContent=`✖️ (${qa*qb})`; feedback.className='feedback bad'; }
+      qCount++; updateUI();
+      if(qCount<numQ) newQ(); else end();
+    }
+
+    function updateUI(){ countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad; }
+
+    function start(){
+      qCount=0; good=0; bad=0; updateUI(); document.getElementById('play').style.display='block';
+      document.getElementById('result').style.display='none'; newQ();
+    }
+
+    function end(){
+      document.getElementById('play').style.display='none';
+      document.getElementById('result').style.display='block';
+      document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
+      showFireworks(4000);
+    }
+
+    document.getElementById('startBtn').onclick=start;
+    document.getElementById('okBtn').onclick=check;
+    document.getElementById('againBtn').onclick=start;
+
+    // ============ Fireworks intégré ============
+    (function () {
+      function createCanvas() {
+        let canvas=document.getElementById('fireworks-overlay');
+        if(!canvas){
+          canvas=document.createElement('canvas'); canvas.id='fireworks-overlay';
+          canvas.style.position='fixed'; canvas.style.inset='0'; canvas.style.zIndex='10000'; canvas.style.pointerEvents='none';
+          document.body.appendChild(canvas);
+        }
+        const ctx=canvas.getContext('2d');
+        canvas.width=window.innerWidth; canvas.height=window.innerHeight;
+        return {canvas,ctx};
       }
-      document.getElementById("score").innerText="Score : "+score;
-      setTimeout(newQuestion,1000);
-    }
-
-    function startApp(){
-      document.getElementById("intro").classList.add("hide");
-      newQuestion();
-    }
+      class Particle {
+        constructor(x,y,color,angle,speed){this.x=x;this.y=y;this.vx=Math.cos(angle)*speed;this.vy=Math.sin(angle)*speed;this.life=1;this.decay=Math.random()*0.015+0.012;this.color=color;this.size=Math.random()*2+1.5;}
+        update(){this.x+=this.vx;this.y+=this.vy;this.vy+=0.05;this.vx*=0.99;this.vy*=0.99;this.life-=this.decay;return this.life>0;}
+        draw(ctx){ctx.globalAlpha=Math.max(this.life,0);ctx.beginPath();ctx.arc(this.x,this.y,this.size,0,Math.PI*2);ctx.fillStyle=this.color;ctx.fill();}
+      }
+      function explode(particles,cx,cy){
+        const palette=['#ff5252','#ffd166','#6ee7b7','#60a5fa','#a78bfa','#f472b6'];
+        const color=palette[(Math.random()*palette.length)|0];
+        const count=90;
+        for(let i=0;i<count;i++){const angle=Math.random()*Math.PI*2;const speed=(Math.random()*4+2);particles.push(new Particle(cx,cy,color,angle,speed));}
+        const a=document.getElementById('fw-sound'); if(a){a.currentTime=0;a.play().catch(()=>{});}
+      }
+      window.showFireworks=function(duration=4000){
+        const {canvas,ctx}=createCanvas(); const particles=[]; const endAt=performance.now()+duration;
+        const jitter=()=>({x:canvas.width/2+(Math.random()-0.5)*100,y:canvas.height/2+(Math.random()-0.5)*100});
+        explode(particles,canvas.width/2,canvas.height/2);
+        function frame(now){
+          ctx.globalCompositeOperation='source-over';ctx.globalAlpha=0.18;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+          ctx.globalCompositeOperation='lighter';
+          for(let i=particles.length-1;i>=0;i--){const p=particles[i];if(!p.update()){particles.splice(i,1);continue;}p.draw(ctx);}
+          if(now<endAt){if(Math.random()<0.08){const c=jitter();explode(particles,c.x,c.y);}requestAnimationFrame(frame);}else if(particles.length){requestAnimationFrame(frame);}else{canvas.remove();}
+        }
+        requestAnimationFrame(frame);
+      }
+    })();
   </script>
 </body>
 </html>
