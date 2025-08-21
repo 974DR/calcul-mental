@@ -244,5 +244,17 @@ button:disabled{opacity:.6;cursor:not-allowed}
     window.__stopFireworksSound = stopAllFireworksSounds;
   })();
   </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const testBtn = document.getElementById("testBtn");
+  const audio = document.getElementById("introAudio");
+  if (testBtn && audio) {
+    testBtn.addEventListener("click", () => {
+      audio.currentTime = 0;
+      audio.play().catch(err => console.log("Erreur lecture:", err));
+    });
+  }
+});
+</script>
 </body>
 </html>
