@@ -14,15 +14,11 @@
     }
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
-
-    /* En-tête simple */
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     .sub{color:var(--muted);font-size:14px}
     .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
       border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
     .hidden{display:none!important}
-
-    /* Cartes / UI */
     .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
     @media (max-width:850px){.grid{grid-template-columns:1fr}}
@@ -42,8 +38,6 @@
     .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
-
-    /* Intro (overlay) */
     #intro{position:fixed;inset:0;z-index:9999;background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
       display:grid;place-items:center;opacity:1;transition:opacity .6s ease;pointer-events:auto;}
     #intro.hide{opacity:0;pointer-events:none}
@@ -74,7 +68,6 @@
       <div style="flex:1">
         <div class="sub">Tables de calcul — entraînement ludique</div>
       </div>
-      <!-- 🏠 affiché seulement hors menu -->
       <button id="homeBtn" class="icon-btn hidden" title="Retour menu" aria-label="Retour menu">🏠</button>
     </header>
 
@@ -115,57 +108,13 @@
     </section>
   </div>
 
-  <!-- Son des feux -->
-  <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
-
-  <!-- Confetti + Feux d'artifice -->
-  
- <!-- Pool audio pour les feux (exposé en global pour fireworks.js) -->
-<script>
-(function () {
-  const SRC = 'fireworks.mp3';       // fichier dans le même dossier que index.html
-  const POOL_SIZE = 6;               // plusieurs instances pour enchaîner les “boom”
-  const pool = [];
-  for (let i = 0; i < POOL_SIZE; i++) {
-    const a = new Audio(SRC);
-    a.preload = 'auto';
-    a.volume = 1.0;                  // ajuste si besoin (0.0–1.0)
-    pool.push(a);
-  }
-  let idx = 0;
-
-  function playBoom() {              // appelé par fireworks.js à chaque explosion
-    const a = pool[idx];
-    idx = (idx + 1) % POOL_SIZE;
-    try { a.currentTime = 0; a.play().catch(()=>{}); } catch(e){}
-  }
-  function stopAll() {               // appelé par fireworks.js à la fin
-    pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
-  }
-
-  // 🔓 Déverrouille l’audio au 1er geste (iOS/Safari)
-  const unlock = () => {
-    pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
-    document.removeEventListener('click', unlock);
-    document.removeEventListener('touchstart', unlock);
-    document.removeEventListener('keydown', unlock);
-  };
-  document.addEventListener('click', unlock);
-  document.addEventListener('touchstart', unlock);
-  document.addEventListener('keydown', unlock);
-
-  // Expose en global pour fireworks.js
-  window.__playFireworkSound = playBoom;
-  window.__stopFireworksSound = stopAll;
-})();
-</script>
+  <!-- 🎆 Feux + confettis -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
   <script>
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
-    let currentMode="mult"; // 'mult' ou 'div'
-    let confettiTimer = null; // pour pouvoir arrêter si besoin
+    let currentMode="mult";
 
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
@@ -174,25 +123,7 @@
           goodEl=document.getElementById('good'),
           badEl=document.getElementById('bad'),
           feedback=document.getElementById('feedback'),
-          homeBtn=document.getElementById('homeBtn'),
-          fwAudio=document.getElementById('fw-sound');
-
-    // Déverrouille l'audio au 1er geste (iOS/Safari)
-    (function unlockAudioOnce(){
-      function unlock(){
-        if (!fwAudio) return cleanup();
-        fwAudio.play().then(()=>{ fwAudio.pause(); fwAudio.currentTime=0; }).catch(()=>{});
-        cleanup();
-      }
-      function cleanup(){
-        document.removeEventListener('click', unlock);
-        document.removeEventListener('touchstart', unlock);
-        document.removeEventListener('keydown', unlock);
-      }
-      document.addEventListener('click', unlock);
-      document.addEventListener('touchstart', unlock);
-      document.addEventListener('keydown', unlock);
-    })();
+          homeBtn=document.getElementById('homeBtn');
 
     function newQ(){
       if(currentMode==="mult"){
@@ -200,8 +131,8 @@
         qb=Math.floor(Math.random()*11);
         opEl.textContent="×";
       } else {
-        qb=Math.floor(Math.random()*10)+2;  // diviseur
-        qa=qb*(Math.floor(Math.random()*10)+2); // multiple
+        qb=Math.floor(Math.random()*10)+2;
+        qa=qb*(Math.floor(Math.random()*10)+2);
         opEl.textContent="÷";
       }
       qaEl.textContent=qa; qbEl.textContent=qb;
@@ -228,69 +159,25 @@
       newQ();
     }
 
-    // 🎆+🎊 Célébration 100% synchronisée (7s)
-    function playCelebration(ms=7000){
-      const endAt = performance.now() + ms;
-
-      // 1) Feux d’artifice visuels (gérés dans fireworks.js)
-      try { window.showFireworks(ms); } catch(e){}
-
-      // 2) Son — commence tout de suite, s'arrête à la fin
-      if (fwAudio) {
-        try {
-          fwAudio.currentTime = 0;
-          fwAudio.loop = false; // ton mp3 fait ~7s ; on ne boucle pas
-          fwAudio.play().catch(()=>{});
-        } catch(e){}
-      }
-
-      // 3) Confetti — petites salves régulières pendant 7s
-      function burst(){
-        if (typeof confetti !== 'function') return;
-        confetti({ particleCount: 70, spread: 70, startVelocity: 45, scalar: 0.9, origin: { y: 0.6 } });
-      }
-      burst(); // une salve immédiate
-      const step = 400; // toutes les 400 ms
-      function loop(){
-        const now = performance.now();
-        if (now < endAt){
-          burst();
-          confettiTimer = setTimeout(loop, step);
-        } else {
-          // fin : coupe le son proprement
-          if (fwAudio) { try { fwAudio.pause(); fwAudio.currentTime = 0; } catch(e){} }
-        }
-      }
-      loop();
-    }
-
     function end(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='block';
-      const pct = Math.round(100*good/qCount)||0;
-      document.getElementById('scorePct').textContent = pct;
-      if (pct === 100) {
-        // 7 secondes pour les visuels ET le son
-        playCelebration(7000);
-      }
+      const pct=Math.round(100*good/qCount)||0;
+      document.getElementById('scorePct').textContent=pct;
+      if(pct===100) playCelebration(7000);
     }
 
-    // 🔙 Retour au menu
     function backToMenu(){
-      // stop confetti timer (si encore en cours)
-      if (confettiTimer) { clearTimeout(confettiTimer); confettiTimer = null; }
-      // stop son éventuel
-      if (fwAudio) { try { fwAudio.pause(); fwAudio.currentTime = 0; } catch(e){} }
-
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
       document.getElementById('intro').classList.remove('hide');
-      homeBtn.classList.add('hidden');       // cache 🏠 au menu
-      window.scrollTo({top:0, behavior:'smooth'});
+      homeBtn.classList.add('hidden');
+      if(confettiTimer){ clearTimeout(confettiTimer); confettiTimer=null; }
+      if(window.__stopFireworksSound) window.__stopFireworksSound();
+      window.scrollTo({top:0,behavior:'smooth'});
     }
 
-    // Boutons
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
@@ -298,28 +185,65 @@
     document.getElementById('backFromResult').onclick=backToMenu;
     homeBtn.onclick=backToMenu;
 
-    // Intro : choix du mode → on quitte l’overlay + on montre 🏠
-    (function () {
-      const intro   = document.getElementById('intro');
-      const multBtn = document.getElementById('introMultBtn');
-      const divBtn  = document.getElementById('introDivBtn');
-
-      function closeIntro(){
-        intro.classList.add('hide');
-        homeBtn.classList.remove('hidden');  // montre 🏠
-      }
-      multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
-      divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
+    (function(){
+      const intro=document.getElementById('intro');
+      const multBtn=document.getElementById('introMultBtn');
+      const divBtn=document.getElementById('introDivBtn');
+      function closeIntro(){ intro.classList.add('hide'); homeBtn.classList.remove('hidden'); }
+      multBtn.addEventListener('click',()=>{currentMode="mult";closeIntro();});
+      divBtn.addEventListener('click',()=>{currentMode="div";closeIntro();});
     })();
-  </script>
 
-  <!-- Service worker (maj la version v=19) -->
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=19')
-        .then(reg => reg.update())
-        .catch(()=>{});
+    // 🎆 Feux + 🎊 confetti + 🔊 son
+    let confettiTimer=null;
+    function playCelebration(ms=7000){
+      const endAt=performance.now()+ms;
+      try{window.showFireworks(ms);}catch(e){}
+
+      function burst(){
+        if(typeof confetti==="function"){
+          confetti({particleCount:70,spread:70,startVelocity:45,scalar:0.9,origin:{y:0.6}});
+        }
+      }
+      burst();
+      const step=400;
+      function loop(){
+        if(performance.now()<endAt){
+          burst(); confettiTimer=setTimeout(loop,step);
+        }else{
+          if(window.__stopFireworksSound) window.__stopFireworksSound();
+        }
+      }
+      loop();
+    }
+
+    // Service Worker
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker.register('sw.js?v=22').then(reg=>reg.update()).catch(()=>{});
     }
   </script>
+
+  <!-- Gestion audio exposée -->
+  <script>
+  (function(){
+    const SRC='fireworks.mp3'; // mets ton son ici
+    const POOL_SIZE=6;
+    const pool=[];
+    for(let i=0;i<POOL_SIZE;i++){let a=new Audio(SRC);a.preload='auto';a.volume=1.0;pool.push(a);}
+    let idx=0;
+    function playBoom(){let a=pool[idx];idx=(idx+1)%POOL_SIZE;try{a.currentTime=0;a.play().catch(()=>{});}catch(e){}}
+    function stopAll(){pool.forEach(a=>{try{a.pause();a.currentTime=0;}catch(e){}});}
+    const unlock=()=>{pool.forEach(a=>a.play().then(()=>a.pause()).catch(()=>{}));
+      document.removeEventListener('click',unlock);
+      document.removeEventListener('touchstart',unlock);
+      document.removeEventListener('keydown',unlock);};
+    document.addEventListener('click',unlock);
+    document.addEventListener('touchstart',unlock);
+    document.addEventListener('keydown',unlock);
+    window.__playFireworkSound=playBoom;
+    window.__stopFireworksSound=stopAll;
+  })();
+  </script>
+
 </body>
 </html>
