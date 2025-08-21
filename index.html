@@ -112,7 +112,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
       <!-- ✅ Bouton Play -->
-      <button id="playIntroBtn" class="intro-btn" type="button">▶️ Commencer</button>
+      <button id="playIntroBtn" class="intro-btn" type="button" onclick="startIntro()">▶️ Commencer</button>
     </div>
   </div>
 
@@ -142,9 +142,8 @@ button:disabled{opacity:.6;cursor:not-allowed}
   <!-- ===== JS principal (jeu) ===== -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw-v9.js?v=1').catch(()=>{});
+      navigator.serviceWorker.register('sw-v9.js?v=2').catch(()=>{});
     }
-    // ton JS principal du jeu reste inchangé
   </script>
 
   <!-- Confetti + Fireworks -->
@@ -153,33 +152,32 @@ button:disabled{opacity:.6;cursor:not-allowed}
 
   <!-- ✅ Intro avec Play -->
   <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const intro = document.getElementById('intro');
-    if (!intro) return;
-
+  (function () {
     const SEEN_KEY = 'cm_intro_seen_v1';
-    const audio = document.getElementById('introAudio');
-    const playBtn = document.getElementById('playIntroBtn');
 
-    function closeIntro(){
-      intro.classList.add('hide');
-      localStorage.setItem(SEEN_KEY, '1');
-      const start = document.getElementById('startBtn');
-      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-    }
-
-    // Si déjà vu → on saute l’intro
+    // Si déjà vu → masquer l’intro
     if (localStorage.getItem(SEEN_KEY)) {
-      intro.classList.add('hide');
+      const intro = document.getElementById('intro');
+      if (intro) intro.classList.add('hide');
       return;
     }
 
-    // Play au clic
-    playBtn.addEventListener('click', () => {
-      try { audio.currentTime = 0; audio.play().catch(()=>{}); } catch(e){}
-      closeIntro();
-    });
-  });
+    // Fonction appelée par le bouton
+    window.startIntro = function startIntro() {
+      const intro = document.getElementById('intro');
+      const audio = document.getElementById('introAudio');
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(()=>{});
+      } catch(e) {}
+
+      if (intro) intro.classList.add('hide');
+      localStorage.setItem(SEEN_KEY, '1');
+
+      const start = document.getElementById('startBtn');
+      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+    };
+  })();
   </script>
 
   <!-- Son de feu d'artifice -->
@@ -203,23 +201,18 @@ button:disabled{opacity:.6;cursor:not-allowed}
       try {
         a.currentTime = 0;
         a.play().catch(()=>{});
-        // coupe chaque “boom” après 700 ms
-        setTimeout(() => { if (!a.paused) { a.pause(); a.currentTime = 0; } }, 700);
+        setTimeout(()=>{ if (!a.paused) { a.pause(); a.currentTime = 0; } }, 700);
       } catch(e) {}
     }
     function stopAllFireworksSounds(){
       pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
     }
-
-    // Helper : l’intro est-elle visible ?
     function introVisible(){
       const el = document.getElementById('intro');
       return el && !el.classList.contains('hide');
     }
-
-    // Débloque l'audio au 1er geste utilisateur… sauf si l’intro est visible
     const unlockOnce = () => {
-      if (introVisible()) return; // on ignore les clics sur l’intro
+      if (introVisible()) return;
       pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
       document.removeEventListener('click', unlockOnce);
       document.removeEventListener('touchstart', unlockOnce);
