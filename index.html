@@ -459,19 +459,18 @@ document.addEventListener('visibilitychange', () => {
   });
 </script>
 
-  <!-- Son de feu d'artifice -->
+ <!-- Son de feu d'artifice -->
 <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
 
 <script>
-// --- Fireworks Sound: pool pour sons qui se chevauchent ---
 (function(){
   const SRC = document.getElementById('fw-sound').getAttribute('src');
-  const POOL_SIZE = 6;             // plusieurs instances pour les explosions rapprochées
+  const POOL_SIZE = 6;
   const pool = [];
   for (let i = 0; i < POOL_SIZE; i++) {
     const a = new Audio(SRC);
     a.preload = 'auto';
-    a.volume = 0.6;                // ajuste le volume global
+    a.volume = 0.6;
     pool.push(a);
   }
   let idx = 0;
@@ -482,22 +481,22 @@ document.addEventListener('visibilitychange', () => {
     try {
       a.currentTime = 0;
       a.play().catch(()=>{});
-
-      // ⏹️ Arrêt automatique après 700 ms (à ajuster si besoin)
-      setTimeout(() => {
-        if (!a.paused) {
-          a.pause();
-          a.currentTime = 0; // prêt pour la prochaine explosion
-        }
+      setTimeout(() => {            // coupe chaque “boom” après 700 ms
+        if (!a.paused) { a.pause(); a.currentTime = 0; }
       }, 700);
-
     } catch(e) {}
   }
 
-  // Écoute un événement personnalisé déclenché par fireworks.js
-  window.addEventListener('firework:boom', playFireworkOnce);
+  // 🔴 NOUVEAU : stop global (appelé à la fin des feux)
+  function stopAllFireworksSounds(){
+    pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
+  }
 
-  // Débloque l'audio au premier geste utilisateur
+  // Expose en global
+  window.__playFireworkSound = playFireworkOnce;
+  window.__stopFireworksSound = stopAllFireworksSounds;
+
+  // Débloque l'audio au 1er geste
   const unlock = () => {
     pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
     document.removeEventListener('click', unlock);
@@ -507,9 +506,6 @@ document.addEventListener('visibilitychange', () => {
   document.addEventListener('click', unlock);
   document.addEventListener('touchstart', unlock);
   document.addEventListener('keydown', unlock);
-
-  // Expose la fonction globale au cas où
-  window.__playFireworkSound = playFireworkOnce;
 })();
 </script>
   
