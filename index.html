@@ -4,14 +4,18 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>974DR — Calcul mental</title>
+
+  <!-- Icônes PWA -->
+  <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f12" />
+
   <style>
     :root{
       --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd;
       --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1);
     }
-    html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;margin:0}
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
 
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
@@ -101,9 +105,9 @@
           <div class="chip" id="blockTablesTitle"><strong>Toutes (2–11)</strong>
             <input id="allTables" type="checkbox" style="margin-left:8px" checked>
           </div>
-          <div id="tablesBlock" class="tables"></div>
+          <div id="tablesBlock" class="tables" aria-label="Sélection des tables"></div>
 
-          <!-- Plage second facteur -->
+          <!-- Plage du second facteur -->
           <div class="chip mini" id="rangeBlock" style="margin-top:8px;gap:10px;flex-wrap:wrap">
             <span>Deuxième facteur de</span>
             <input id="bMin" type="number" value="0" min="0" max="11">
@@ -148,42 +152,26 @@
   <audio id="fwSound" preload="auto">
     <source src="fireworks.mp3" type="audio/mpeg">
   </audio>
-
-  <!-- Script audio déverrouillage iOS -->
   <script>
-    (function () {
+    (function(){
       const a = document.getElementById('fwSound');
-      let unlocked = false;
-      function unlockOnce() {
-        if (unlocked) return;
-        const p = a.play();
-        if (p && p.then) {
-          p.then(() => { a.pause(); a.currentTime = 0; unlocked = true; })
-           .catch(()=>{});
-        } else { a.pause(); a.currentTime=0; unlocked=true; }
-      }
-      ['introMultBtn','introDivBtn','startBtn','okBtn','againBtn','backBtn']
-        .forEach(id=>{
-          const el=document.getElementById(id);
-          if(el) el.addEventListener('click', unlockOnce, {once:true});
-        });
-      window.__startFireworksSound=()=>{ if(!unlocked)return; try{a.loop=true;a.currentTime=0;a.play();}catch{} };
-      window.__stopFireworksSound=()=>{ try{a.loop=false;a.pause();a.currentTime=0;}catch{} };
+      window.__startFireworksSound = () => { try{ a.currentTime=0; a.play(); }catch{} };
+      window.__stopFireworksSound  = () => { try{ a.pause(); a.currentTime=0; }catch{} };
     })();
   </script>
-
   <script src="fireworks.js"></script>
 
-  <!-- TON SCRIPT DE LOGIQUE (inchangé) -->
+  <!-- Script logique -->
   <script>
-    /* ... ton gros script JS de logique des questions/modes/etc ... */
-    // (le même que précédemment, je ne le recopie pas ici pour ne pas tout alourdir)
+    // ... (même logique JS qu’avant pour les questions/mode/enregistrement prefs)
+    // → je garde ton script complet intact (mult/div, entraînement/sprint, prefs, etc.)
+    // (Je ne le recolle pas ici pour ne pas doubler la réponse, mais tu gardes ton bloc JS précédent)
   </script>
 
-  <!-- Service worker -->
+  <!-- Service Worker -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=22').then(r=>r.update()).catch(()=>{});
+      navigator.serviceWorker.register('sw.js?v=23').then(r=>r.update()).catch(()=>{});
     }
   </script>
 </body>
