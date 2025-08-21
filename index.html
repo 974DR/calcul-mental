@@ -115,11 +115,17 @@
     </section>
   </div>
 
+  <!-- Son des feux -->
+  <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
+
+  <!-- Confetti + Feux d'artifice -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
   <script>
     let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
     let currentMode="mult"; // 'mult' ou 'div'
+    let confettiTimer = null; // pour pouvoir arrêter si besoin
 
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
@@ -128,7 +134,25 @@
           goodEl=document.getElementById('good'),
           badEl=document.getElementById('bad'),
           feedback=document.getElementById('feedback'),
-          homeBtn=document.getElementById('homeBtn');
+          homeBtn=document.getElementById('homeBtn'),
+          fwAudio=document.getElementById('fw-sound');
+
+    // Déverrouille l'audio au 1er geste (iOS/Safari)
+    (function unlockAudioOnce(){
+      function unlock(){
+        if (!fwAudio) return cleanup();
+        fwAudio.play().then(()=>{ fwAudio.pause(); fwAudio.currentTime=0; }).catch(()=>{});
+        cleanup();
+      }
+      function cleanup(){
+        document.removeEventListener('click', unlock);
+        document.removeEventListener('touchstart', unlock);
+        document.removeEventListener('keydown', unlock);
+      }
+      document.addEventListener('click', unlock);
+      document.addEventListener('touchstart', unlock);
+      document.addEventListener('keydown', unlock);
+    })();
 
     function newQ(){
       if(currentMode==="mult"){
@@ -136,8 +160,8 @@
         qb=Math.floor(Math.random()*11);
         opEl.textContent="×";
       } else {
-        qb=Math.floor(Math.random()*10)+2;           // diviseur
-        qa=qb*(Math.floor(Math.random()*10)+2);      // multiple (résultat entier)
+        qb=Math.floor(Math.random()*10)+2;  // diviseur
+        qa=qb*(Math.floor(Math.random()*10)+2); // multiple
         opEl.textContent="÷";
       }
       qaEl.textContent=qa; qbEl.textContent=qb;
@@ -164,16 +188,60 @@
       newQ();
     }
 
+    // 🎆+🎊 Célébration 100% synchronisée (7s)
+    function playCelebration(ms=7000){
+      const endAt = performance.now() + ms;
+
+      // 1) Feux d’artifice visuels (gérés dans fireworks.js)
+      try { window.showFireworks(ms); } catch(e){}
+
+      // 2) Son — commence tout de suite, s'arrête à la fin
+      if (fwAudio) {
+        try {
+          fwAudio.currentTime = 0;
+          fwAudio.loop = false; // ton mp3 fait ~7s ; on ne boucle pas
+          fwAudio.play().catch(()=>{});
+        } catch(e){}
+      }
+
+      // 3) Confetti — petites salves régulières pendant 7s
+      function burst(){
+        if (typeof confetti !== 'function') return;
+        confetti({ particleCount: 70, spread: 70, startVelocity: 45, scalar: 0.9, origin: { y: 0.6 } });
+      }
+      burst(); // une salve immédiate
+      const step = 400; // toutes les 400 ms
+      function loop(){
+        const now = performance.now();
+        if (now < endAt){
+          burst();
+          confettiTimer = setTimeout(loop, step);
+        } else {
+          // fin : coupe le son proprement
+          if (fwAudio) { try { fwAudio.pause(); fwAudio.currentTime = 0; } catch(e){} }
+        }
+      }
+      loop();
+    }
+
     function end(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='block';
-      const pct=Math.round(100*good/qCount)||0;
-      document.getElementById('scorePct').textContent=pct;
-      if(pct===100) showFireworks(6000); // 🎆 feux d'artifice si 100%
+      const pct = Math.round(100*good/qCount)||0;
+      document.getElementById('scorePct').textContent = pct;
+      if (pct === 100) {
+        // 7 secondes pour les visuels ET le son
+        playCelebration(7000);
+      }
     }
 
     // 🔙 Retour au menu
     function backToMenu(){
+      // stop confetti timer (si encore en cours)
+      if (confettiTimer) { clearTimeout(confettiTimer); confettiTimer = null; }
+      // stop son éventuel
+      if (fwAudio) { try { fwAudio.pause(); fwAudio.currentTime = 0; } catch(e){} }
+
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
@@ -205,10 +273,10 @@
     })();
   </script>
 
-  <!-- Service worker -->
+  <!-- Service worker (maj la version v=19) -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js?v=19') <!-- 🔥 mis à jour -->
+      navigator.serviceWorker.register('sw.js?v=19')
         .then(reg => reg.update())
         .catch(()=>{});
     }
