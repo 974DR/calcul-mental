@@ -1,7 +1,7 @@
-// sw.js (v23) — PWA calcul-mental
+// sw.js (v24) — PWA calcul-mental
 // HTML: network-first (avec navigationPreload) ; autres: stale-while-revalidate
 
-const CACHE = 'cm-v23';
+const CACHE = 'cm-v24';
 const ASSETS = [
   './',                    // racine du site
   './index.html',
