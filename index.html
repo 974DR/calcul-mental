@@ -170,11 +170,14 @@ button:disabled{opacity:.6;cursor:not-allowed}
 
   <!-- ===== JS principal (jeu) ===== -->
   <script>
-    if ('serviceWorker' in navigator) {
-      // ⚠️ pense à avoir un fichier sw-v10.js à la racine du site
-      navigator.serviceWorker.register('sw-v10.js').catch(()=>{});
-    }
-  </script>
+if ('serviceWorker' in navigator) {
+  // on change le nom du fichier ET on ajoute un query param pour éviter tout mélange
+  navigator.serviceWorker.register('sw-v11.js?v=11').then(() => {
+    // optionnel : tenter une mise à jour immédiate
+    navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.update()));
+  }).catch(()=>{});
+}
+</script>
 
   <!-- Confetti + Fireworks -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
