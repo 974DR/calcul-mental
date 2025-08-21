@@ -37,7 +37,12 @@
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
 
-    /* ===== Intro ===== */
+    /* Bouton maison (icône) + utilitaires */
+    .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
+      border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
+    .hidden{display:none !important}
+
+    /* ===== Intro (overlay) ===== */
     #intro{
       position:fixed; inset:0; z-index:9999;
       background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
@@ -77,9 +82,8 @@
         <h1>Pour les élèves de la 974DR !</h1>
         <div class="sub">Tables de calcul — entraînement ludique</div>
       </div>
-      <!-- 🏠 Bouton retour menu (caché au menu) -->
-      <button id="homeBtn" title="Retour menu"
-        style="font-size:22px;background:none;border:none;cursor:pointer;display:none">🏠</button>
+      <!-- 🏠 affiché seulement hors menu -->
+      <button id="homeBtn" class="icon-btn hidden" title="Retour menu" aria-label="Retour menu">🏠</button>
     </header>
 
     <div class="banner">
@@ -95,7 +99,6 @@
           <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10"></label></div>
           <button id="startBtn">Démarrer</button>
         </div>
-
         <div>
           <div id="play" class="card" style="display:none">
             <div class="question"><span id="qa"></span> <span id="op"></span> <span id="qb"></span> = ?</div>
@@ -135,7 +138,8 @@
           countEl=document.getElementById('count'),
           goodEl=document.getElementById('good'),
           badEl=document.getElementById('bad'),
-          feedback=document.getElementById('feedback');
+          feedback=document.getElementById('feedback'),
+          homeBtn=document.getElementById('homeBtn');
 
     function newQ(){
       if(currentMode==="mult"){
@@ -143,13 +147,12 @@
         qb=Math.floor(Math.random()*11);
         opEl.textContent="×";
       } else {
-        qb=Math.floor(Math.random()*10)+2;         // diviseur
-        qa=qb*(Math.floor(Math.random()*10)+2);    // multiple (résultat entier)
+        qb=Math.floor(Math.random()*10)+2;
+        qa=qb*(Math.floor(Math.random()*10)+2);
         opEl.textContent="÷";
       }
       qaEl.textContent=qa; qbEl.textContent=qb;
-      document.getElementById('answer').value='';
-      document.getElementById('answer').focus();
+      const a=document.getElementById('answer'); a.value=''; a.focus();
     }
 
     function check(){
@@ -183,33 +186,28 @@
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
-      // réouvre l’intro
-      const intro=document.getElementById('intro');
-      intro.classList.remove('hide');
-      // cache 🏠
-      document.getElementById('homeBtn').style.display = 'none';
-      // remonte en haut (mobile)
+      document.getElementById('intro').classList.remove('hide');
+      homeBtn.classList.add('hidden');       // cache 🏠 au menu
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
-    // Câblage des boutons du jeu
+    // Boutons “jeu”
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
     document.getElementById('backBtn').onclick=backToMenu;
     document.getElementById('backFromResult').onclick=backToMenu;
-    document.getElementById('homeBtn').onclick=backToMenu;  // 🏠
+    homeBtn.onclick=backToMenu;              // 🏠
 
-    // Intro : choix du mode + affichage du 🏠
+    // Intro : choix du mode → on quitte l’overlay + on montre 🏠
     (function () {
       const intro   = document.getElementById('intro');
       const multBtn = document.getElementById('introMultBtn');
       const divBtn  = document.getElementById('introDivBtn');
-      const homeBtn = document.getElementById('homeBtn');
 
       function closeIntro(){
         intro.classList.add('hide');
-        homeBtn.style.display = ''; // montre 🏠
+        homeBtn.classList.remove('hidden');  // montre 🏠
       }
       multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
       divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
