@@ -71,16 +71,16 @@
   </div>
 
   <div class="wrap">
-  <header>
-    <div class="logo"><span>×</span></div>
-    <div style="flex:1">
-      <h1>Pour les élèves de la 974DR !</h1>
-      <div class="sub">Tables de calcul — entraînement ludique</div>
-    </div>
-    <!-- 🏠 Bouton retour menu -->
-    <button id="homeBtn" title="Retour menu" 
-      style="font-size:22px;background:none;border:none;cursor:pointer">🏠</button>
-  </header>
+    <header>
+      <div class="logo"><span>×</span></div>
+      <div style="flex:1">
+        <h1>Pour les élèves de la 974DR !</h1>
+        <div class="sub">Tables de calcul — entraînement ludique</div>
+      </div>
+      <!-- 🏠 Bouton retour menu (caché au menu) -->
+      <button id="homeBtn" title="Retour menu"
+        style="font-size:22px;background:none;border:none;cursor:pointer;display:none">🏠</button>
+    </header>
 
     <div class="banner">
       💙 Vive la 974DR ! 💙 <br>
@@ -99,14 +99,11 @@
         <div>
           <div id="play" class="card" style="display:none">
             <div class="question"><span id="qa"></span> <span id="op"></span> <span id="qb"></span> = ?</div>
-
             <div class="input-line">
               <input id="answer" type="number">
               <button id="okBtn">Valider</button>
-              <!-- ⬅️ Nouveau bouton retour pendant le jeu -->
               <button id="backBtn" class="secondary" type="button">Retour menu</button>
             </div>
-
             <div id="feedback" class="feedback"></div>
             <div class="status">
               <div class="pill">Q <span id="count">0</span></div>
@@ -120,7 +117,6 @@
             <p>Score : <strong><span id="scorePct">0</span>%</strong></p>
             <div class="input-line">
               <button id="againBtn">Refaire</button>
-              <!-- ⬅️ Et aussi depuis le résumé -->
               <button id="backFromResult" class="secondary" type="button">Retour menu</button>
             </div>
           </div>
@@ -182,7 +178,7 @@
       document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
     }
 
-    // 🔙 Retour au menu (réaffiche l’intro, remet l’UI propre)
+    // 🔙 Retour au menu
     function backToMenu(){
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
@@ -190,24 +186,33 @@
       // réouvre l’intro
       const intro=document.getElementById('intro');
       intro.classList.remove('hide');
-      // remonte en haut (sur mobile)
+      // cache 🏠
+      document.getElementById('homeBtn').style.display = 'none';
+      // remonte en haut (mobile)
       window.scrollTo({top:0, behavior:'smooth'});
     }
 
+    // Câblage des boutons du jeu
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
     document.getElementById('backBtn').onclick=backToMenu;
     document.getElementById('backFromResult').onclick=backToMenu;
+    document.getElementById('homeBtn').onclick=backToMenu;  // 🏠
 
-    // Intro : choix du mode
+    // Intro : choix du mode + affichage du 🏠
     (function () {
-      const intro=document.getElementById('intro');
-      const multBtn=document.getElementById('introMultBtn');
-      const divBtn=document.getElementById('introDivBtn');
-      function closeIntro(){ intro.classList.add('hide'); }
+      const intro   = document.getElementById('intro');
+      const multBtn = document.getElementById('introMultBtn');
+      const divBtn  = document.getElementById('introDivBtn');
+      const homeBtn = document.getElementById('homeBtn');
+
+      function closeIntro(){
+        intro.classList.add('hide');
+        homeBtn.style.display = ''; // montre 🏠
+      }
       multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
-      divBtn.addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
+      divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
     })();
   </script>
 </body>
