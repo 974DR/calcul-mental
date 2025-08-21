@@ -150,35 +150,44 @@ button:disabled{opacity:.6;cursor:not-allowed}
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
-  <!-- ✅ Intro avec Play -->
-  <script>
-  (function () {
-    const SEEN_KEY = 'cm_intro_seen_v1';
+ <!-- ✅ Intro avec Play (robuste) -->
+<script>
+(function () {
+  const SEEN_KEY = 'cm_intro_seen_v1';
 
-    // Si déjà vu → masquer l’intro
+  // 1) Toujours définir la fonction globale, même si l'intro est déjà "vue"
+  window.startIntro = function startIntro() {
+    const intro = document.getElementById('intro');
+    const audio = document.getElementById('introAudio');
+    try {
+      audio.currentTime = 0;
+      audio.play().catch(()=>{});   // iOS: peut nécessiter un 2e tap si mode silencieux
+    } catch(e) {}
+
+    if (intro) intro.classList.add('hide');
+    localStorage.setItem(SEEN_KEY, '1');
+
+    const start = document.getElementById('startBtn');
+    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+  };
+
+  // 2) À DOM prêt : cacher l'intro si déjà vue, et branchement de secours sur le bouton
+  document.addEventListener('DOMContentLoaded', () => {
+    const intro = document.getElementById('intro');
+    const btn   = document.getElementById('playIntroBtn');
+
     if (localStorage.getItem(SEEN_KEY)) {
-      const intro = document.getElementById('intro');
       if (intro) intro.classList.add('hide');
-      return;
     }
 
-    // Fonction appelée par le bouton
-    window.startIntro = function startIntro() {
-      const intro = document.getElementById('intro');
-      const audio = document.getElementById('introAudio');
-      try {
-        audio.currentTime = 0;
-        audio.play().catch(()=>{});
-      } catch(e) {}
-
-      if (intro) intro.classList.add('hide');
-      localStorage.setItem(SEEN_KEY, '1');
-
-      const start = document.getElementById('startBtn');
-      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-    };
-  })();
-  </script>
+    // fallback au cas où l'attribut onclick serait retiré par minification/SSR/etc.
+    if (btn && !btn.__introBound) {
+      btn.addEventListener('click', window.startIntro);
+      btn.__introBound = true;
+    }
+  });
+})();
+</script>
 
   <!-- Son de feu d'artifice -->
   <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
