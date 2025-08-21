@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>974DR — Calcul mental</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0e0f12">
+  <style>
+    :root{ --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd; --accent:#ffd166; --ok:#34d399; --bad:#f87171; --border:rgba(255,255,255,.1); }
+    html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
+    header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+    h1{margin:0;font-size:clamp(22px,4vw,34px)}
+    .sub{color:var(--muted);font-size:14px}
+    .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
+    .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
+    @media (max-width:850px){.grid{grid-template-columns:1fr}}
+    .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
+    input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#e8ecf1;width:90px}
+    button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
+    button.secondary{background:transparent;color:#e8ecf1;border:1px solid var(--border)}
+    .question{font-size:clamp(28px,6vw,56px);font-weight:800;text-align:center;margin:10px 0 6px}
+    .question .op{color:var(--accent)}
+    .input-line{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap}
+    .input-line input{font-size:22px;text-align:center;width:180px}
+    .status{display:flex;gap:10px;justify-content:space-between;border-top:1px dashed var(--border);padding-top:10px;margin-top:10px;color:var(--muted)}
+    .pill{padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#0f1218}
+    .pill.ok{border-color:rgba(52,211,153,.4);color:#d1fae5}
+    .pill.bad{border-color:rgba(248,113,113,.4);color:#fee2e2}
+    .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
+    .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
+    .result{display:none} .result.active{display:block}
+    .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
+      border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
+    .hidden{display:none!important}
+    /* Intro */
+    #intro{position:fixed;inset:0;z-index:9999;background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
+      display:grid;place-items:center;opacity:1;transition:opacity .6s ease;pointer-events:auto;}
+    #intro.hide{opacity:0;pointer-events:none}
+    .intro-center{text-align:center;padding:24px}
+    .intro-logo{font-weight:900;letter-spacing:2px;font-size:clamp(36px,12vw,96px);
+      background:linear-gradient(135deg,#8dd0ff,#9b72ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .intro-sub{color:#c9d6e2;margin:6px 0 16px;font-size:clamp(14px,3.5vw,18px);opacity:.9}
+    .intro-heart{font-size:22px;color:#ff4d4d;font-weight:800;margin-bottom:14px}
+    .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
+      background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px}
+  </style>
+</head>
+<body>
+
+  <!-- Intro -->
+  <div id="intro" aria-hidden="true">
+    <div class="intro-center">
+      <div class="intro-logo">974DR</div>
+      <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
+      <div class="intro-heart">❤️ Vive les maths ❤️</div>
+      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
+      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <header>
+      <div style="flex:1">
+        <div class="sub">Tables de calcul — entraînement ludique</div>
+      </div>
+      <button id="homeBtn" class="icon-btn hidden" title="Retour menu" aria-label="Retour menu">🏠</button>
+    </header>
+
+    <section class="card">
+      <div class="grid">
+        <div>
+          <div class="chip"><input type="radio" name="mode" value="train" checked> Entraînement</div>
+          <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10"></label></div>
+          <button id="startBtn">Démarrer</button>
+        </div>
+        <div>
+          <div id="play" class="card" style="display:none">
+            <div class="question"><span id="qa"></span> <span id="op"></span> <span id="qb"></span> = ?</div>
+            <div class="input-line">
+              <input id="answer" type="number">
+              <button id="okBtn">Valider</button>
+              <button id="backBtn" class="secondary" type="button">Retour menu</button>
+            </div>
+            <div id="feedback" class="feedback"></div>
+            <div class="status">
+              <div class="pill">Q <span id="count">0</span></div>
+              <div class="pill ok">✔︎ <span id="good">0</span></div>
+              <div class="pill bad">✖︎ <span id="bad">0</span></div>
+            </div>
+          </div>
+
+          <div id="result" class="result card">
+            <h3>Résumé</h3>
+            <p>Score : <strong><span id="scorePct">0</span>%</strong></p>
+            <div class="input-line">
+              <button id="againBtn">Refaire</button>
+              <button id="backFromResult" class="secondary" type="button">Retour menu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
+    let currentMode="mult"; // 'mult' ou 'div'
+
+    const qaEl=document.getElementById('qa'),
+          qbEl=document.getElementById('qb'),
+          opEl=document.getElementById('op'),
+          countEl=document.getElementById('count'),
+          goodEl=document.getElementById('good'),
+          badEl=document.getElementById('bad'),
+          feedback=document.getElementById('feedback'),
+          homeBtn=document.getElementById('homeBtn');
+
+    function newQ(){
+      if(currentMode==="mult"){
+        qa=Math.floor(Math.random()*10)+2;
+        qb=Math.floor(Math.random()*11);
+        opEl.textContent="×";
+      } else {
+        qb=Math.floor(Math.random()*10)+2;
+        qa=qb*(Math.floor(Math.random()*10)+2);
+        opEl.textContent="÷";
+      }
+      qaEl.textContent=qa; qbEl.textContent=qb;
+      const a=document.getElementById('answer'); a.value=''; a.focus();
+    }
+    function check(){
+      const ans=parseInt(document.getElementById('answer').value);
+      const correct=(currentMode==="mult")?(qa*qb):(qa/qb);
+      if(ans===correct){ good++; feedback.textContent='✔️'; feedback.className='feedback ok'; }
+      else { bad++; feedback.textContent=`✖️ (${correct})`; feedback.className='feedback bad'; }
+      qCount++; updateUI();
+      if(qCount<numQ) newQ(); else end();
+    }
+    function updateUI(){ countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad; }
+    function start(){
+      numQ=parseInt(document.getElementById('numQ').value)||10;
+      qCount=0; good=0; bad=0; updateUI();
+      feedback.textContent=''; feedback.className='feedback';
+      document.getElementById('play').style.display='block';
+      document.getElementById('result').style.display='none';
+      newQ();
+    }
+    function end(){
+      document.getElementById('play').style.display='none';
+      document.getElementById('result').style.display='block';
+      document.getElementById('scorePct').textContent=Math.round(100*good/qCount)||0;
+    }
+    function backToMenu(){
+      document.getElementById('play').style.display='none';
+      document.getElementById('result').style.display='none';
+      feedback.textContent=''; feedback.className='feedback';
+      document.getElementById('intro').classList.remove('hide');
+      homeBtn.classList.add('hidden');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }
+
+    document.getElementById('startBtn').onclick=start;
+    document.getElementById('okBtn').onclick=check;
+    document.getElementById('againBtn').onclick=start;
+    document.getElementById('backBtn').onclick=backToMenu;
+    document.getElementById('backFromResult').onclick=backToMenu;
+    homeBtn.onclick=backToMenu;
+
+    (function(){
+      const intro=document.getElementById('intro');
+      const multBtn=document.getElementById('introMultBtn');
+      const divBtn=document.getElementById('introDivBtn');
+      function closeIntro(){
+        intro.classList.add('hide');
+        homeBtn.classList.remove('hidden');
+      }
+      multBtn.addEventListener('click',()=>{ currentMode='mult'; closeIntro(); });
+      divBtn .addEventListener('click',()=>{ currentMode='div';  closeIntro(); });
+    })();
+  </script>
+
+  <!-- IMPORTANT : fichier dans la RACINE, avec version pour casser le cache -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js?v=17').then(r=>r.update()).catch(()=>{});
+    }
+  </script>
+</body>
+</html>
