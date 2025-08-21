@@ -1,12 +1,23 @@
 {
-  "name": "974DR — Calcul mental",
+  "name": "974DR — Calcul Mental",
   "short_name": "974DR",
-  "start_url": "./",
+  "description": "Entraînement ludique aux tables de multiplication et division.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0e0f12",
   "theme_color": "#0e0f12",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
   ]
 }
