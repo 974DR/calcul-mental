@@ -111,8 +111,9 @@ button:disabled{opacity:.6;cursor:not-allowed}
       <div class="intro-logo">974DR</div>
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
-      <!-- ✅ Bouton Play -->
-      <button id="playIntroBtn" class="intro-btn" type="button" onclick="startIntro()">▶️ Commencer</button>
+
+      <!-- ✅ Bouton Play — SANS onclick -->
+      <button id="playIntroBtn" class="intro-btn" type="button">▶️ Commencer</button>
     </div>
   </div>
 
@@ -132,7 +133,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
     </div>
 
     <!-- Son d'intro -->
-    <audio id="introAudio" src="mixkit-angelic-swell-presentation-2672.wav" preload="auto"></audio>
+    <audio id="introAudio" src="mixkit-angelic-swell-presentation-2672.wav" preload="auto" playsinline></audio>
 
     <section class="card">
       <!-- … le reste de la page (réglages/jeu/résultats) … -->
@@ -150,44 +151,46 @@ button:disabled{opacity:.6;cursor:not-allowed}
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
- <!-- ✅ Intro avec Play (robuste) -->
-<script>
-(function () {
-  const SEEN_KEY = 'cm_intro_seen_v1';
+  <!-- ✅ Intro avec Play (robuste) -->
+  <script>
+  (function () {
+    const SEEN_KEY = 'cm_intro_seen_v1';
 
-  // 1) Toujours définir la fonction globale, même si l'intro est déjà "vue"
-  window.startIntro = function startIntro() {
-    const intro = document.getElementById('intro');
-    const audio = document.getElementById('introAudio');
-    try {
-      audio.currentTime = 0;
-      audio.play().catch(()=>{});   // iOS: peut nécessiter un 2e tap si mode silencieux
-    } catch(e) {}
+    // 1) Toujours exposer la fonction globale
+    window.startIntro = function startIntro() {
+      const intro = document.getElementById('intro');
+      const audio = document.getElementById('introAudio');
+      try {
+        audio.currentTime = 0;
+        audio.play().catch(()=>{});   // iOS: si mode silencieux, le son peut rester muet — mais le bouton ferme l'intro
+      } catch(e) {}
 
-    if (intro) intro.classList.add('hide');
-    localStorage.setItem(SEEN_KEY, '1');
+      if (intro) intro.classList.add('hide');
+      localStorage.setItem(SEEN_KEY, '1');
 
-    const start = document.getElementById('startBtn');
-    if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
-  };
+      const start = document.getElementById('startBtn');
+      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
+    };
 
-  // 2) À DOM prêt : cacher l'intro si déjà vue, et branchement de secours sur le bouton
-  document.addEventListener('DOMContentLoaded', () => {
-    const intro = document.getElementById('intro');
-    const btn   = document.getElementById('playIntroBtn');
+    // 2) Brancher le bouton dès qu'il existe (sans attendre DOMContentLoaded)
+    (function bindNowOrLater(){
+      const btn = document.getElementById('playIntroBtn');
+      if (btn && !btn.__boundIntro) {
+        btn.addEventListener('click', window.startIntro, { once: true });
+        btn.__boundIntro = true;
+      } else {
+        // réessaye brièvement si le bouton n'est pas encore dans le DOM
+        setTimeout(bindNowOrLater, 30);
+      }
+    })();
 
+    // 3) Masquer l'intro si déjà vue (mais APRÈS avoir défini startIntro)
     if (localStorage.getItem(SEEN_KEY)) {
+      const intro = document.getElementById('intro');
       if (intro) intro.classList.add('hide');
     }
-
-    // fallback au cas où l'attribut onclick serait retiré par minification/SSR/etc.
-    if (btn && !btn.__introBound) {
-      btn.addEventListener('click', window.startIntro);
-      btn.__introBound = true;
-    }
-  });
-})();
-</script>
+  })();
+  </script>
 
   <!-- Son de feu d'artifice -->
   <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
@@ -221,7 +224,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
       return el && !el.classList.contains('hide');
     }
     const unlockOnce = () => {
-      if (introVisible()) return;
+      if (introVisible()) return;          // ⛔ ignore les clics sur l’intro → pas de “pop”
       pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
       document.removeEventListener('click', unlockOnce);
       document.removeEventListener('touchstart', unlockOnce);
