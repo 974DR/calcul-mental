@@ -12,6 +12,19 @@ const ASSETS = [
   'icon-512.png',
   'manifest.webmanifest',
   'mixkit-angelic-swell-presentation-2672.wav',
+  // exemple
+const CACHE_NAME = 'v9'; // <-- augmente le numéro
+
+const FILES_TO_CACHE = [
+  '/',
+  'index.html',
+  'fireworks.js',
+  'icon-192.png',
+  'icon-512.png',
+  'manifest.webmanifest',
+  'mixkit-angelic-swell-presentation-2672.wav',
+  'fireworks.mp3' // <-- ajoute le son des feux d'artifice
+];
   // ajoute ici d'autres fichiers si besoin (css/js) **sans** slash initial
 ].map(toURL);
 
