@@ -6,7 +6,6 @@
   <title>974DR — Calcul mental</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0e0f12" />
-
   <style>
     :root{
       --bg:#0e0f12; --card:#171a21; --text:#e8ecf1; --muted:#aab3bd;
@@ -14,16 +13,20 @@
     }
     html,body{height:100%; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     .wrap{max-width:980px;margin:28px auto 64px;padding:0 16px}
+
     header{display:flex;align-items:center;gap:14px;margin-bottom:18px}
     .sub{color:var(--muted);font-size:14px}
     .icon-btn{width:44px;height:44px;border-radius:10px;display:grid;place-items:center;
       border:1px solid var(--border);background:#0f1218;font-size:22px;line-height:1}
     .hidden{display:none!important}
+
     .card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:14px;padding:16px}
     .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:16px}
     @media (max-width:850px){.grid{grid-template-columns:1fr}}
     .chip{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:8px 10px;background:#0f1218}
+    .toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:#0f1218}
     input[type="number"]{background:#0f1218;border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:#e8ecf1;width:90px}
+    .mini input[type="number"]{width:70px}
     button{appearance:none;border:none;border-radius:12px;padding:12px 16px;font-weight:700;cursor:pointer;
       background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f}
     button.secondary{background:transparent;color:#e8ecf1;border:1px solid var(--border)}
@@ -38,6 +41,8 @@
     .feedback{min-height:26px;text-align:center;font-weight:800;margin-top:6px}
     .feedback.ok{color:var(--ok)} .feedback.bad{color:var(--bad)}
     .result{display:none} .result.active{display:block}
+
+    /* Intro (overlay) */
     #intro{position:fixed;inset:0;z-index:9999;background:radial-gradient(1200px 800px at 30% -10%, #1b2330 0%, #0c0e12 60%);
       display:grid;place-items:center;opacity:1;transition:opacity .6s ease;pointer-events:auto;}
     #intro.hide{opacity:0;pointer-events:none}
@@ -48,20 +53,25 @@
     .intro-heart{font-size:22px;color:#ff4d4d;font-weight:800;margin-bottom:14px}
     .intro-btn{border:none;border-radius:14px;padding:12px 18px;font-weight:800;cursor:pointer;
       background:linear-gradient(135deg,#4aa7ff,#8dd0ff);color:#03111f;margin-top:14px}
+
+    /* grille des tables */
+    .tables{display:grid;grid-template-columns:repeat(4,minmax(90px,1fr));gap:10px}
+    @media (max-width:520px){.tables{grid-template-columns:repeat(3,minmax(90px,1fr))}}
+    .table-chip{display:flex;align-items:center;gap:8px;justify-content:center;border:1px solid var(--border);background:#0f1218;border-radius:12px;padding:10px;font-weight:700}
   </style>
 </head>
 <body>
 
- <!-- Intro -->
-<div id="intro" aria-hidden="true">
-  <div class="intro-center">
-    <div class="intro-logo">974DR</div>
-    <div class="intro-sub">✨ Vive Sécheron ✨</div>
-    <div class="intro-heart">❤️ Vive les maths ❤️</div>
-    <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
-    <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+  <!-- Intro -->
+  <div id="intro" aria-hidden="true">
+    <div class="intro-center">
+      <div class="intro-logo">974DR</div>
+      <div class="intro-sub">✨ Vive Sécheron ✨</div>
+      <div class="intro-heart">❤️ Vive les maths ❤️</div>
+      <button id="introMultBtn" class="intro-btn" type="button">Table de multiplication</button><br><br>
+      <button id="introDivBtn" class="intro-btn" type="button">Table de division</button>
+    </div>
   </div>
-</div>
 
   <div class="wrap">
     <header>
@@ -74,9 +84,36 @@
     <section class="card">
       <div class="grid">
         <div>
-          <div class="chip"><input type="radio" name="mode" value="train" checked> Entraînement</div>
-          <div class="chip"><label>Nb questions <input id="numQ" type="number" value="10"></label></div>
-          <button id="startBtn">Démarrer</button>
+          <!-- Modes d'entraînement -->
+          <div class="toggle" style="gap:18px;flex-wrap:wrap">
+            <label><input type="radio" name="runmode" value="train" checked> Entraînement</label>
+            <label><input type="radio" name="runmode" value="sprint"> Sprint 60 s</label>
+          </div>
+
+          <!-- Nb questions (actif seulement en entraînement) -->
+          <div class="chip">
+            <label>Nb questions
+              <input id="numQ" type="number" value="20" min="1" max="200" style="margin-left:8px">
+            </label>
+          </div>
+
+          <!-- Choix des tables de multiplication -->
+          <div class="chip" id="blockTablesTitle"><strong>Toutes (2–11)</strong>
+            <input id="allTables" type="checkbox" style="margin-left:8px" checked>
+          </div>
+          <div id="tablesBlock" class="tables" aria-label="Sélection des tables">
+            <!-- généré par JS : x2…x11 -->
+          </div>
+
+          <!-- Plage du second facteur -->
+          <div class="chip mini" id="rangeBlock" style="margin-top:8px;gap:10px;flex-wrap:wrap">
+            <span>Deuxième facteur de</span>
+            <input id="bMin" type="number" value="0" min="0" max="11">
+            <span>à</span>
+            <input id="bMax" type="number" value="11" min="0" max="11">
+          </div>
+
+          <button id="startBtn" style="margin-top:10px">Démarrer</button>
         </div>
 
         <div>
@@ -92,6 +129,7 @@
               <div class="pill">Q <span id="count">0</span></div>
               <div class="pill ok">✔︎ <span id="good">0</span></div>
               <div class="pill bad">✖︎ <span id="bad">0</span></div>
+              <div class="pill" id="timePill" style="display:none">⏱️ <span id="timeLeft">60</span>s</div>
             </div>
           </div>
 
@@ -108,14 +146,32 @@
     </section>
   </div>
 
-  <!-- 🎆 Feux + confettis -->
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <!-- Audio + lib feux d’artifice (déjà dans ton dépôt) -->
+  <audio id="fwSound" preload="auto">
+    <source src="fireworks.mp3" type="audio/mpeg">
+  </audio>
+  <script>
+    // pont son pour fireworks.js
+    (function(){
+      const a = document.getElementById('fwSound');
+      window.__playFireworkSound = () => { try{ a.currentTime=0; a.play(); }catch{} };
+      window.__stopFireworksSound = () => { try{ a.pause(); a.currentTime=0; }catch{} };
+    })();
+  </script>
   <script src="fireworks.js"></script>
 
   <script>
-    let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=10;
-    let currentMode="mult";
+    // --------- ÉTAT ---------
+    let qa=0,qb=0,qCount=0,good=0,bad=0,numQ=20;
+    let currentMode="mult"; // 'mult' | 'div'
+    let runMode="train";    // 'train' | 'sprint'
+    let timer=null, endAt=0;
 
+    // tables sélectionnées (2..11)
+    let tablesSel = new Set([2,3,4,5,6,7,8,9,10,11]);
+    let bMin=0, bMax=11;
+
+    // --------- DOM ---------
     const qaEl=document.getElementById('qa'),
           qbEl=document.getElementById('qb'),
           opEl=document.getElementById('op'),
@@ -123,16 +179,73 @@
           goodEl=document.getElementById('good'),
           badEl=document.getElementById('bad'),
           feedback=document.getElementById('feedback'),
-          homeBtn=document.getElementById('homeBtn');
+          homeBtn=document.getElementById('homeBtn'),
+          timePill=document.getElementById('timePill'),
+          timeLeftEl=document.getElementById('timeLeft');
+
+    // Génère les chips x2..x11
+    const tablesBlock = document.getElementById('tablesBlock');
+    for(let t=2;t<=11;t++){
+      const id = 't'+t;
+      const div = document.createElement('label');
+      div.className='table-chip';
+      div.innerHTML = `<input id="${id}" type="checkbox" checked> ×${t}`;
+      tablesBlock.appendChild(div);
+      div.querySelector('input').addEventListener('change', e=>{
+        if(e.target.checked) tablesSel.add(t); else tablesSel.delete(t);
+        syncAllTables();
+        savePrefs();
+      });
+    }
+    function syncFromPrefs(){
+      const prefs = JSON.parse(localStorage.getItem('cm_prefs')||'{}');
+      if(prefs.numQ) numQ=prefs.numQ;
+      if(prefs.bMin!=null) bMin=prefs.bMin;
+      if(prefs.bMax!=null) bMax=prefs.bMax;
+      if(Array.isArray(prefs.tables)) tablesSel = new Set(prefs.tables);
+      if(prefs.runMode) runMode = prefs.runMode;
+
+      document.getElementById('numQ').value = numQ;
+      document.getElementById('bMin').value = bMin;
+      document.getElementById('bMax').value = bMax;
+      document.querySelector(`input[name="runmode"][value="${runMode}"]`).checked = true;
+      for(let t=2;t<=11;t++){
+        document.getElementById('t'+t).checked = tablesSel.has(t);
+      }
+      syncAllTables();
+      toggleTrainInputs();
+    }
+    function savePrefs(){
+      localStorage.setItem('cm_prefs', JSON.stringify({
+        numQ, bMin, bMax, tables:[...tablesSel], runMode
+      }));
+    }
+    function syncAllTables(){
+      const allOn = (tablesSel.size===10);
+      document.getElementById('allTables').checked = allOn;
+    }
+    document.getElementById('allTables').addEventListener('change', e=>{
+      if(e.target.checked){ tablesSel = new Set([2,3,4,5,6,7,8,9,10,11]); }
+      else { tablesSel.clear(); }
+      for(let t=2;t<=11;t++) document.getElementById('t'+t).checked = tablesSel.has(t);
+      savePrefs();
+    });
+
+    // --------- LOGIQUE ---------
+    function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
 
     function newQ(){
       if(currentMode==="mult"){
-        qa=Math.floor(Math.random()*10)+2;
-        qb=Math.floor(Math.random()*11);
-        opEl.textContent="×";
+        // sécurisé : au moins une table + plage valide
+        const list = [...tablesSel];
+        const qA = list.length? list[randInt(0,list.length-1)] : randInt(2,11);
+        let min=bMin, max=bMax;
+        if(min>max){ const tmp=min; min=max; max=tmp; }
+        const qB = randInt(Math.max(0,min), Math.min(11,max));
+        qa=qA; qb=qB; opEl.textContent="×";
       } else {
-        qb=Math.floor(Math.random()*10)+2;
-        qa=qb*(Math.floor(Math.random()*10)+2);
+        qb = randInt(2,11);
+        qa = qb * randInt(2,11);
         opEl.textContent="÷";
       }
       qaEl.textContent=qa; qbEl.textContent=qb;
@@ -145,128 +258,111 @@
       if(ans===correct){ good++; feedback.textContent='✔️'; feedback.className='feedback ok'; }
       else { bad++; feedback.textContent=`✖️ (${correct})`; feedback.className='feedback bad'; }
       qCount++; updateUI();
-      if(qCount<numQ) newQ(); else end();
+
+      if(runMode==='train'){
+        if(qCount<numQ) newQ(); else end();
+      }else{ // sprint
+        if(Date.now()<endAt) newQ(); else end();
+      }
     }
 
-    function updateUI(){ countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad; }
+    function updateUI(){
+      countEl.textContent=qCount; goodEl.textContent=good; badEl.textContent=bad;
+    }
+
+    function toggleTrainInputs(){
+      const nQ = document.getElementById('numQ');
+      nQ.disabled = (runMode==='sprint');
+      timePill.style.display = (runMode==='sprint') ? '' : 'none';
+    }
 
     function start(){
-      numQ=parseInt(document.getElementById('numQ').value)||10;
+      // lit réglages
+      runMode = document.querySelector('input[name="runmode"]:checked').value;
+      numQ = parseInt(document.getElementById('numQ').value)||20;
+      bMin = parseInt(document.getElementById('bMin').value)||0;
+      bMax = parseInt(document.getElementById('bMax').value)||11;
+      savePrefs();
+      toggleTrainInputs();
+
       qCount=0; good=0; bad=0; updateUI();
       feedback.textContent=''; feedback.className='feedback';
       document.getElementById('play').style.display='block';
       document.getElementById('result').style.display='none';
+
+      if(runMode==='sprint'){
+        endAt = Date.now()+60000; // 60 s
+        timeLeftEl.textContent = 60;
+        clearInterval(timer);
+        timer = setInterval(()=>{
+          const left = Math.max(0, Math.ceil((endAt - Date.now())/1000));
+          timeLeftEl.textContent = left;
+          if(left<=0){ clearInterval(timer); }
+        }, 200);
+      }else{
+        clearInterval(timer);
+      }
+
       newQ();
     }
 
     function end(){
+      clearInterval(timer);
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='block';
-      const pct=Math.round(100*good/qCount)||0;
-      document.getElementById('scorePct').textContent=pct;
-      if(pct===100) playCelebration(7000);
+      const total = Math.max(1,qCount);
+      document.getElementById('scorePct').textContent = Math.round(100*good/total);
+
+      // feux + son si 100%
+      if(good===total && total>0){
+        if(window.showFireworks) window.showFireworks(7000); // 7s
+      }
     }
 
     function backToMenu(){
+      clearInterval(timer);
       document.getElementById('play').style.display='none';
       document.getElementById('result').style.display='none';
       feedback.textContent=''; feedback.className='feedback';
       document.getElementById('intro').classList.remove('hide');
       homeBtn.classList.add('hidden');
-      if(confettiTimer){ clearTimeout(confettiTimer); confettiTimer=null; }
-      if(window.__stopFireworksSound) window.__stopFireworksSound();
-      window.scrollTo({top:0,behavior:'smooth'});
+      window.scrollTo({top:0, behavior:'smooth'});
     }
 
+    // Boutons
     document.getElementById('startBtn').onclick=start;
     document.getElementById('okBtn').onclick=check;
     document.getElementById('againBtn').onclick=start;
     document.getElementById('backBtn').onclick=backToMenu;
     document.getElementById('backFromResult').onclick=backToMenu;
     homeBtn.onclick=backToMenu;
+    document.querySelectorAll('input[name="runmode"]').forEach(r=>r.addEventListener('change',()=>{
+      runMode=r.value; toggleTrainInputs(); savePrefs();
+    }));
 
-    (function(){
-      const intro=document.getElementById('intro');
-      const multBtn=document.getElementById('introMultBtn');
-      const divBtn=document.getElementById('introDivBtn');
-      function closeIntro(){ intro.classList.add('hide'); homeBtn.classList.remove('hidden'); }
-      multBtn.addEventListener('click',()=>{currentMode="mult";closeIntro();});
-      divBtn.addEventListener('click',()=>{currentMode="div";closeIntro();});
+    // Intro : choix du mode → on quitte l’overlay + on montre 🏠
+    (function () {
+      const intro   = document.getElementById('intro');
+      const multBtn = document.getElementById('introMultBtn');
+      const divBtn  = document.getElementById('introDivBtn');
+
+      function closeIntro(){
+        intro.classList.add('hide');
+        homeBtn.classList.remove('hidden');
+      }
+      multBtn.addEventListener('click', ()=>{ currentMode="mult"; closeIntro(); });
+      divBtn .addEventListener('click', ()=>{ currentMode="div";  closeIntro(); });
     })();
 
-    // 🎆 Feux + 🎊 confetti + 🔊 son
-    let confettiTimer=null;
-    function playCelebration(ms=7000){
-      const endAt=performance.now()+ms;
-      try{window.showFireworks(ms);}catch(e){}
-
-      function burst(){
-        if(typeof confetti==="function"){
-          confetti({particleCount:70,spread:70,startVelocity:45,scalar:0.9,origin:{y:0.6}});
-        }
-      }
-      burst();
-      const step=400;
-      function loop(){
-        if(performance.now()<endAt){
-          burst(); confettiTimer=setTimeout(loop,step);
-        }else{
-          if(window.__stopFireworksSound) window.__stopFireworksSound();
-        }
-      }
-      loop();
-    }
-
-    // Service Worker
-    if('serviceWorker' in navigator){
-      navigator.serviceWorker.register('sw.js?v=22').then(reg=>reg.update()).catch(()=>{});
-    }
+    // Charger préférences au démarrage
+    syncFromPrefs();
   </script>
 
-   <!-- Gestion audio exposée -->
+  <!-- Service worker (pense à incrémenter v=) -->
   <script>
-  (function(){
-    const SRC = 'fireworks.mp3'; // ton fichier son (7s)
-    const POOL_SIZE = 6;
-    const pool = [];
-    for(let i=0;i<POOL_SIZE;i++){
-      let a = new Audio(SRC);
-      a.preload = 'auto';
-      a.volume = 1.0;
-      pool.push(a);
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js?v=21').then(r=>r.update()).catch(()=>{});
     }
-    let idx = 0;
-
-    // 🔊 Appelé UNIQUEMENT par fireworks.js
-    function playBoom(){
-      let a = pool[idx];
-      idx = (idx+1) % POOL_SIZE;
-      try{ a.currentTime = 0; a.play().catch(()=>{});}catch(e){}
-    }
-
-    // 🔇 Couper tous les sons
-    function stopAll(){
-      pool.forEach(a=>{ try{a.pause(); a.currentTime = 0;}catch(e){} });
-    }
-
-    // 🔓 Déblocage silencieux (pas de lecture auto !)
-    function unlock(){
-      pool.forEach(a=>{
-        try{ a.muted = true; a.play().then(()=>{a.pause(); a.muted = false;}).catch(()=>{});}catch(e){}
-      });
-      document.removeEventListener('click',unlock);
-      document.removeEventListener('touchstart',unlock);
-      document.removeEventListener('keydown',unlock);
-    }
-    document.addEventListener('click',unlock);
-    document.addEventListener('touchstart',unlock);
-    document.addEventListener('keydown',unlock);
-
-    // API globale pour fireworks.js
-    window.__playFireworkSound = playBoom;
-    window.__stopFireworksSound = stopAll;
-  })();
   </script>
-
 </body>
 </html>
