@@ -1,5 +1,5 @@
 // sw.js
-const CACHE = 'cm-v7'; // ← nouvelle version
+const CACHE = 'cm-v9'; // ← nouvelle version
 
 // Construire des URLs relatives au scope du SW (donc /calcul-mental/)
 const toURL = (p) => new URL(p, self.location).toString();
