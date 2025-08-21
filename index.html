@@ -120,6 +120,45 @@
 
   <!-- Confetti + Feux d'artifice -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+ <!-- Pool audio pour les feux (exposé en global pour fireworks.js) -->
+<script>
+(function () {
+  const SRC = 'fireworks.mp3';       // fichier dans le même dossier que index.html
+  const POOL_SIZE = 6;               // plusieurs instances pour enchaîner les “boom”
+  const pool = [];
+  for (let i = 0; i < POOL_SIZE; i++) {
+    const a = new Audio(SRC);
+    a.preload = 'auto';
+    a.volume = 1.0;                  // ajuste si besoin (0.0–1.0)
+    pool.push(a);
+  }
+  let idx = 0;
+
+  function playBoom() {              // appelé par fireworks.js à chaque explosion
+    const a = pool[idx];
+    idx = (idx + 1) % POOL_SIZE;
+    try { a.currentTime = 0; a.play().catch(()=>{}); } catch(e){}
+  }
+  function stopAll() {               // appelé par fireworks.js à la fin
+    pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e){} });
+  }
+
+  // 🔓 Déverrouille l’audio au 1er geste (iOS/Safari)
+  const unlock = () => {
+    pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
+    document.removeEventListener('click', unlock);
+    document.removeEventListener('touchstart', unlock);
+    document.removeEventListener('keydown', unlock);
+  };
+  document.addEventListener('click', unlock);
+  document.addEventListener('touchstart', unlock);
+  document.addEventListener('keydown', unlock);
+
+  // Expose en global pour fireworks.js
+  window.__playFireworkSound = playBoom;
+  window.__stopFireworksSound = stopAll;
+})();
+</script>
   <script src="fireworks.js"></script>
 
   <script>
