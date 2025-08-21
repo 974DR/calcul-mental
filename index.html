@@ -112,7 +112,7 @@ button:disabled{opacity:.6;cursor:not-allowed}
       <div class="intro-sub">Vive la 974DR · Vive Sécheron ✨</div>
       <div class="intro-heart">❤️ Vive les maths ❤️</div>
 
-      <!-- ✅ Bouton Play — SANS onclick -->
+      <!-- ✅ Bouton Play intro -->
       <button id="playIntroBtn" class="intro-btn" type="button">▶️ Commencer</button>
     </div>
   </div>
@@ -132,14 +132,16 @@ button:disabled{opacity:.6;cursor:not-allowed}
       ❤️ Vive les maths ❤️
     </div>
 
+    <!-- ✅ Bouton test -->
     <div style="text-align:center; margin:20px 0;">
-  <button id="testBtn" class="intro-btn" type="button">
-    🎵 Table de multiplication
-  </button>
-</div>
+      <button id="testBtn" class="intro-btn" type="button">
+        🎵 Table de multiplication
+      </button>
+    </div>
     
-    <!-- Son d'intro -->
+    <!-- Sons -->
     <audio id="introAudio" src="mixkit-angelic-swell-presentation-2672.wav" preload="auto" playsinline></audio>
+    <audio id="testAudio" src="fireworks.mp3" preload="auto" playsinline></audio>
 
     <section class="card">
       <!-- … le reste de la page (réglages/jeu/résultats) … -->
@@ -157,40 +159,33 @@ button:disabled{opacity:.6;cursor:not-allowed}
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
   <script src="fireworks.js"></script>
 
-  <!-- ✅ Intro avec Play (robuste) -->
+  <!-- ✅ Intro avec Play -->
   <script>
   (function () {
     const SEEN_KEY = 'cm_intro_seen_v1';
 
-    // 1) Toujours exposer la fonction globale
     window.startIntro = function startIntro() {
       const intro = document.getElementById('intro');
       const audio = document.getElementById('introAudio');
       try {
         audio.currentTime = 0;
-        audio.play().catch(()=>{});   // iOS: si mode silencieux, le son peut rester muet — mais le bouton ferme l'intro
+        audio.play().catch(()=>{});
       } catch(e) {}
 
       if (intro) intro.classList.add('hide');
       localStorage.setItem(SEEN_KEY, '1');
-
-      const start = document.getElementById('startBtn');
-      if (start) setTimeout(()=>start.focus({preventScroll:true}), 200);
     };
 
-    // 2) Brancher le bouton dès qu'il existe (sans attendre DOMContentLoaded)
     (function bindNowOrLater(){
       const btn = document.getElementById('playIntroBtn');
       if (btn && !btn.__boundIntro) {
         btn.addEventListener('click', window.startIntro, { once: true });
         btn.__boundIntro = true;
       } else {
-        // réessaye brièvement si le bouton n'est pas encore dans le DOM
         setTimeout(bindNowOrLater, 30);
       }
     })();
 
-    // 3) Masquer l'intro si déjà vue (mais APRÈS avoir défini startIntro)
     if (localStorage.getItem(SEEN_KEY)) {
       const intro = document.getElementById('intro');
       if (intro) intro.classList.add('hide');
@@ -198,63 +193,23 @@ button:disabled{opacity:.6;cursor:not-allowed}
   })();
   </script>
 
-  <!-- Son de feu d'artifice -->
-  <audio id="fw-sound" src="fireworks.mp3" preload="auto"></audio>
+  <!-- ✅ Bouton test audio -->
   <script>
-  (function(){
-    const SRC = document.getElementById('fw-sound').getAttribute('src');
-    const POOL_SIZE = 6;
-    const pool = [];
-    for (let i = 0; i < POOL_SIZE; i++) {
-      const a = new Audio(SRC);
-      a.preload = 'auto';
-      a.volume = 0.6;
-      pool.push(a);
+  document.addEventListener("DOMContentLoaded", () => {
+    const testBtn = document.getElementById("testBtn");
+    const testAudio = document.getElementById("testAudio");
+    if (testBtn && testAudio) {
+      testBtn.addEventListener("click", () => {
+        try {
+          testAudio.currentTime = 0;
+          testAudio.play().then(() => console.log("Lecture OK"))
+                          .catch(err => console.warn("Erreur:", err));
+        } catch(e) {
+          console.error(e);
+        }
+      });
     }
-    let idx = 0;
-
-    function playFireworkOnce() {
-      const a = pool[idx];
-      idx = (idx + 1) % POOL_SIZE;
-      try {
-        a.currentTime = 0;
-        a.play().catch(()=>{});
-        setTimeout(()=>{ if (!a.paused) { a.pause(); a.currentTime = 0; } }, 700);
-      } catch(e) {}
-    }
-    function stopAllFireworksSounds(){
-      pool.forEach(a => { try { a.pause(); a.currentTime = 0; } catch(e) {} });
-    }
-    function introVisible(){
-      const el = document.getElementById('intro');
-      return el && !el.classList.contains('hide');
-    }
-    const unlockOnce = () => {
-      if (introVisible()) return;          // ⛔ ignore les clics sur l’intro → pas de “pop”
-      pool.forEach(a => a.play().then(()=>a.pause()).catch(()=>{}));
-      document.removeEventListener('click', unlockOnce);
-      document.removeEventListener('touchstart', unlockOnce);
-      document.removeEventListener('keydown', unlockOnce);
-    };
-    document.addEventListener('click', unlockOnce);
-    document.addEventListener('touchstart', unlockOnce);
-    document.addEventListener('keydown', unlockOnce);
-
-    window.__playFireworkSound = playFireworkOnce;
-    window.__stopFireworksSound = stopAllFireworksSounds;
-  })();
+  });
   </script>
-  <script>
-document.addEventListener("DOMContentLoaded", () => {
-  const testBtn = document.getElementById("testBtn");
-  const audio = document.getElementById("introAudio");
-  if (testBtn && audio) {
-    testBtn.addEventListener("click", () => {
-      audio.currentTime = 0;
-      audio.play().catch(err => console.log("Erreur lecture:", err));
-    });
-  }
-});
-</script>
 </body>
 </html>
