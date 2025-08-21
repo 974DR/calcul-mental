@@ -11,7 +11,7 @@ const ASSETS = [
   'icon-192.png',
   'icon-512.png',
   'manifest.webmanifest',
-    'mixkit-angelic-swell-presentation-2672.wav',
+  'mixkit-angelic-swell-presentation-2672.wav',
   // ajoute ici d'autres fichiers si besoin (css/js) **sans** slash initial
 ].map(toURL);
 
