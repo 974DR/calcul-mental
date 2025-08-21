@@ -205,12 +205,11 @@
       }
     })();
   </script>
+
   <script>
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js")
-      .then(() => console.log("✅ Service worker enregistré"))
-      .catch(err => console.error("SW fail", err));
-  }
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js?v=12').then(r => r.update()).catch(()=>{});
+}
 </script>
 </body>
 </html>
