@@ -177,10 +177,10 @@
     </div>
   </div>
 
-  <!-- Audio feux d'artifice -->
-  <audio id="fwSound" preload="auto">
-    <source src="fireworks.mp3" type="audio/mpeg">
-  </audio>
+  <!-- Audio feux d'artifice (démarre en muet et sans preload) -->
+<audio id="fwSound" preload="none" muted>
+  <source src="fireworks.mp3" type="audio/mpeg">
+</audio>
 
   <!-- Déverrouillage audio iOS + pont pour fireworks.js -->
   <script>
