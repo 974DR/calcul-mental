@@ -1,10 +1,11 @@
-// sw.js (v16)
-const CACHE = 'cm-v16';
+// sw.js (v17) — scope: /calcul-mental/
+const CACHE = 'cm-v17';
 const ASSETS = [
-  'index.html',
-  'manifest.webmanifest',
-  'icon-192.png',
-  'icon-512.png'
+  './',               // la racine du dossier
+  './index.html',
+  './manifest.webmanifest',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -21,7 +22,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// HTML : network-first ; autres : cache-first
+// HTML: network-first ; autres: cache-first
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   const wantsHTML = req.headers.get('accept')?.includes('text/html');
@@ -32,12 +33,9 @@ self.addEventListener('fetch', (event) => {
         const copy = res.clone();
         caches.open(CACHE).then(c => c.put(req, copy));
         return res;
-      }).catch(() =>
-        caches.match(req).then(r => r || caches.match('index.html'))
-      )
+      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
     );
     return;
   }
-
   event.respondWith(caches.match(req).then(r => r || fetch(req)));
 });
