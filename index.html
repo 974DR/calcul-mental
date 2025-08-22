@@ -69,7 +69,24 @@
     #videosOverlay{position:fixed;inset:0;z-index:9500;display:none}
     #videosOverlay.active{display:block}
     #videosOverlay .backdrop{position:absolute;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(2px)}
-    #videosOverlay .sheet{position:relative;max-width:980px;margin:40px auto;padding:16px;border:1px solid var(--border);border-radius:14px;background:#141820}
+
+    /* >>> CHANGEMENTS PRINCIPAUX POUR LE défilement MOBILE <<< */
+    #videosOverlay .sheet{
+      position:relative;
+      max-width:980px;
+      margin:40px auto;
+      padding:16px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#141820;
+
+      /* permet le scroll à l’intérieur de la fenêtre vidéos */
+      max-height:calc(100dvh - 80px); /* 80px = marges haut/bas */
+      overflow-y:auto;
+      -webkit-overflow-scrolling:touch; /* inertie iOS */
+      overscroll-behavior:contain;      /* évite de faire scroller le fond */
+    }
+
     #videosOverlay header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
     @media (max-width:900px){.vgrid{grid-template-columns:repeat(2,1fr)}}
@@ -77,6 +94,8 @@
     .vcard{background:#0f1218;border:1px solid var(--border);border-radius:12px;overflow:hidden}
     .vcard iframe{display:block;width:100%;aspect-ratio:16/9;border:0}
     .vcard .title{padding:10px;color:#cfd6df;font-size:14px}
+
+    /* bloque UNIQUEMENT le fond, pas l’overlay */
     .no-scroll{overflow:hidden;height:100%}
   </style>
 </head>
@@ -178,11 +197,11 @@
   </div>
 
   <!-- Audio feux d'artifice (démarre en muet et sans preload) -->
-<audio id="fwSound" preload="none" muted>
-  <source src="fireworks.mp3" type="audio/mpeg">
-</audio>
+  <audio id="fwSound" preload="none" muted>
+    <source src="fireworks.mp3" type="audio/mpeg">
+  </audio>
 
-    <!-- Déverrouillage audio iOS + pont pour fireworks.js (version silencieuse) -->
+  <!-- Déverrouillage audio iOS + pont pour fireworks.js (version silencieuse) -->
   <script>
     (function () {
       const a = document.getElementById('fwSound');
@@ -489,6 +508,8 @@
         overlay.classList.add('active');
         document.documentElement.classList.add('no-scroll');
         document.body.classList.add('no-scroll');
+        // (optionnel) focus pour accessibilité
+        closeBtn.focus?.();
       }
       function closeVideos(){
         overlay.querySelectorAll('iframe').forEach(f=>{
